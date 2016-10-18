@@ -1,0 +1,8 @@
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\bin\Debug\NeuralNet.cs.exe.config
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\bin\Debug\NeuralNet.cs.exe
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\bin\Debug\NeuralNet.cs.pdb
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\bin\Debug\MathNet.Numerics.dll
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\bin\Debug\MathNet.Numerics.xml
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\obj\Debug\NeuralNet.cs.csprojResolveAssemblyReference.cache
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\obj\Debug\NeuralNet.cs.exe
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NeuralNet.cs\obj\Debug\NeuralNet.cs.pdb
