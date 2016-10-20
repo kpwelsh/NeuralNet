@@ -20,8 +20,6 @@ namespace NeuralNet.cs
         private Vector<double> InputCache;
         private IActivationFunction ActFunc;
 
-        public enum ActivationFunction { Sigmoid };
-
         private Normal gaussDist;
 
         public Layer(int inputDimension,int outputDimension, ActivationFunction actFunc)
@@ -41,6 +39,14 @@ namespace NeuralNet.cs
                 case ActivationFunction.Sigmoid:
                     ActFunc = new Sigmoid();
                     break;
+                case ActivationFunction.ReLU:
+                    ActFunc = new RectiLinear();
+                    break;
+                case ActivationFunction.SoftPlus:
+                    ActFunc = new SoftPlus();
+                    break;
+                default:
+                    throw new NNException("No available implementation for activation funciton: " + actFunc.ToString());
             }
         }
 
