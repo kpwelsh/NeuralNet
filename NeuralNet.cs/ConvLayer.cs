@@ -220,5 +220,11 @@ namespace NeuralNet.cs
                 BiasErrorCache[i] = 0;
             }
         }
+
+
+        public string DimensionString()
+        {
+            return InputWidth + "x" + InputHeight + "x" + InputDepth + "|" + OutputWidth + "x" + OutputHeight + "x" + OutputDepth;
+        }
     }
 }

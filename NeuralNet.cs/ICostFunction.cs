@@ -7,6 +7,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace NeuralNet.cs
 {
+    public enum CostFunction { MeanSquare, CrossEntropy }
     interface ICostFunction
     {
         double Of(Vector<double> expected, Vector<double> actual);

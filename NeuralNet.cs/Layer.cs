@@ -21,19 +21,21 @@ namespace NeuralNet.cs
         private IActivationFunction ActFunc;
 
         private Normal gaussDist;
+        private bool? Normalize;
+        private double NormalizationWeight = 0.01;
 
-        public Layer(int inputDimension,int outputDimension, ActivationFunction actFunc)
+        private bool Configured = true;
+
+        private int? InputDimension;
+        private int? OutputDimension;
+
+        public Layer(int? inputDimension = null,int? outputDimension = null, ActivationFunction? actFunc = null, bool normalization = false)
         {
-            gaussDist = new Normal(0, 1 / Math.Sqrt(outputDimension));
+            SetParameters(inputDimension, outputDimension, actFunc, normalization);
+        }
 
-            Output = new DenseVector(outputDimension);
-            Biases = DenseVector.CreateRandom(outputDimension,gaussDist);
-            Weights = DenseMatrix.CreateRandom(inputDimension, outputDimension, gaussDist);
-
-            BiasErrorCache = new DenseVector(outputDimension);
-            WeightErrorCache = new DenseMatrix(inputDimension, outputDimension);
-            InputCache = new DenseVector(inputDimension);
-
+        private void SetActFunc(ActivationFunction? actFunc)
+        {
             switch (actFunc)
             {
                 case ActivationFunction.Sigmoid:
@@ -45,9 +47,43 @@ namespace NeuralNet.cs
                 case ActivationFunction.SoftPlus:
                     ActFunc = new SoftPlus();
                     break;
+                case null:
+                    Configured = false;
+                    ActFunc = null;
+                    break;
                 default:
                     throw new NNException("No available implementation for activation funciton: " + actFunc.ToString());
             }
+        }
+
+        private void InitializeWeights()
+        {
+            gaussDist = new Normal(0, 1 / Math.Sqrt((int)OutputDimension));
+
+            Output = new DenseVector((int)OutputDimension);
+            Biases = DenseVector.CreateRandom((int)OutputDimension, gaussDist);
+            Weights = DenseMatrix.CreateRandom((int)InputDimension, (int)OutputDimension, gaussDist);
+
+            BiasErrorCache = new DenseVector((int)OutputDimension);
+            WeightErrorCache = new DenseMatrix((int)InputDimension, (int)OutputDimension);
+            InputCache = new DenseVector((int)InputDimension);
+        }
+
+        public void SetParameters(int? inputDimension = null, int? outputDimension = null, ActivationFunction? actFunc = null, bool? normalization = null)
+        {
+            if (inputDimension != null)
+                InputDimension = (int)inputDimension;
+            if (outputDimension != null)
+                OutputDimension = (int)outputDimension;
+            if (actFunc != null)
+                SetActFunc(actFunc);
+            if (normalization != null)
+                Normalize = (bool)normalization;
+
+            if (InputDimension != null && OutputDimension != null)
+                InitializeWeights();
+
+            Configured = InputDimension != null && OutputDimension != null && ActFunc != null && Normalize != null;
         }
 
         public Vector<double> Process(Vector<double> input)
@@ -62,6 +98,10 @@ namespace NeuralNet.cs
             Vector<double> inputError = outputError.PointwiseMultiply(ActFunc.Derivative(InputCache * Weights));
             BiasErrorCache -= inputError * errorWeight;
             WeightErrorCache -= errorWeight * InputCache.OuterProduct(inputError);
+            if ((bool)Normalize)
+            {
+                WeightErrorCache -= errorWeight * NormalizationWeight * Weights;
+            }
             return Weights * inputError;
         }
 
@@ -74,6 +114,11 @@ namespace NeuralNet.cs
             Biases += BiasErrorCache;
             WeightErrorCache.Clear();
             Biases.Clear();
+        }
+
+        public string DimensionString()
+        {
+            return InputDimension + "|" + OutputDimension;
         }
     }
 }

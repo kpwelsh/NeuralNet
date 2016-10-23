@@ -72,27 +72,54 @@ namespace NeuralNet.cs
                 data.Add(td);
             }
         }
+
+        static void LoadNames(out HashSet<TrainingData> data, string fp, int nDataPoints)
+        {
+            data = new HashSet<TrainingData>();
+            using (StreamReader trainingIn = new StreamReader(fp))
+            {
+                int n = 0;
+                while (!trainingIn.EndOfStream && n < nDataPoints)
+                {
+                    string l = trainingIn.ReadLine();
+                    string[] line = l.Split(',');
+                    TrainingData td = new TrainingData(64, 2);
+                    td.IntLabel = int.Parse(line[64]);
+                    for (var i = 0; i < 64; i++)
+                        td.Data[i] = double.Parse(line[i]);
+                    data.Add(td);
+                    n++;
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            HashSet<TrainingData> total;
             HashSet<TrainingData> td;
             HashSet<TrainingData> test;
             //int nDigits = 2;
             //LoadMultiplication(out td, nDigits, 10000);
             //LoadMultiplication(out test, nDigits, 10000);
-            LoadSin(out td, 10000);
-            LoadSin(out test, 10000);
+            //LoadSin(out td, 10000);
+            //LoadSin(out test, 10000);
 
             //ConvLayer l = new ConvLayer(5, 1, 5, 28, 28, 1);
             //net.Add(l);
             //l = new ConvLayer(2, 2, 1, l.OutputHeight, l.OutputWidth, l.OutputDepth);
             //net.Add(l);
+            //LoadNames(out total, "HashedNames.csv",20000);
+            //SplitSet(total, out td, out test, 0.9);
 
-            //LoadMnist(out td, "mnist_train.csv", 6000);
-            //LoadMnist(out test, "mnist_test.csv", 1000);
-            Net net = new Net(Net.CostFunction.MeanSquare, 10);
-            net.Add(new Layer(1, 10, ActivationFunction.Sigmoid));
-            net.Add(new Layer(10, 10, ActivationFunction.Sigmoid));
-            net.Add(new Layer(10, 1, ActivationFunction.Sigmoid));
+            Text.ShowMenu(new MainMenu());
+
+            LoadMnist(out td, "mnist_train.csv", 60000);
+            LoadMnist(out test, "mnist_test.csv", 10000);
+
+            Net net = new Net();
+            net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
+            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid,true));
+            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid,true));
 
 
             int epochs = 1;
@@ -100,29 +127,50 @@ namespace NeuralNet.cs
             {
                 for (var i = 0; i < epochs; i++)
                 {
-                    List<double> costs = net.Learn(td, 1);
+                    List<double> costs = net.Learn(td, 100);
                     Console.WriteLine("---------------------------------------");
                     Console.WriteLine(string.Format("Final Cost: {0}",costs[costs.Count - 1]));
-                    //Console.WriteLine(string.Format("Correctness on test set: {0}",net.TestClassification(test)));
+                    Console.WriteLine(string.Format("Correctness on test set: {0}",net.TestClassification(test)));
                     Console.WriteLine("Epoch Complete");
                     Console.WriteLine("---------------------------------------");
                 }
                 Console.Write("\nEnter the number of training epochs: ");
             }while (int.TryParse(Console.ReadLine(),out epochs));
 
-            double diff = 0;
-            foreach (TrainingData t in test)
-            {
-                if(t.GetLabelVector()[0] > float.Epsilon)
-                    diff += Math.Abs(net.Process(t.Data)[0] - t.GetLabelVector()[0]) / t.GetLabelVector()[0];
-            }
+            //double diff = 0;
+            //foreach (TrainingData t in test)
+            //{
+            //    if(t.GetLabelVector()[0] > float.Epsilon)
+            //        diff += Math.Abs(net.Process(t.Data)[0] - t.GetLabelVector()[0]) / t.GetLabelVector()[0];
+            //}
 
 
-            Console.WriteLine(string.Format("Average Error: {0}%", 100 * diff / test.Count));
-            for (var i = 0; i < 10; i++)
+            //Console.WriteLine(string.Format("Average Error: {0}%", 100 * diff / test.Count));
+            //for (var i = 0; i < 10; i++)
+            //{
+            //    TrainingData d = test.ElementAt(i);
+            //    Console.WriteLine(string.Format("Guess: {0}\n Actual: {1}", net.Process(d.Data)[0], d.GetLabelVector()[0]));
+            //}
+        }
+
+        /// <summary>
+        /// Puts approximately percent of the input values into out1 and 1-percent into out2
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="out1"></param>
+        /// <param name="out2"></param>
+        /// <param name="percent"></param>
+        private static void SplitSet(HashSet<TrainingData> input, out HashSet<TrainingData> out1, out HashSet<TrainingData> out2, double percent)
+        {
+            ContinuousUniform rand = new ContinuousUniform(0, 1);
+            out1 = new HashSet<TrainingData>();
+            out2 = new HashSet<TrainingData>();
+            foreach(TrainingData td in input)
             {
-                TrainingData d = test.ElementAt(i);
-                Console.WriteLine(string.Format("Guess: {0}\n Actual: {1}", net.Process(d.Data)[0], d.GetLabelVector()[0]));
+                if (rand.Sample() < percent)
+                    out1.Add(td);
+                else
+                    out2.Add(td);
             }
         }
     }

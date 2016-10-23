@@ -22,15 +22,17 @@ namespace NeuralNet.cs
                 Layers[n] = value;
             }
         }
+        public int Count
+        {
+            get { return Layers.Count; }
+        }
 
-        public enum CostFunction { MeanSquare, CrossEntropy}
         private ICostFunction CostFunc;
         private double LearningRate;
 
-        public Net(CostFunction costFunc,double learningRate)
+        public Net()
         {
             Layers = new List<ILayer>();
-            SetParameters(learningRate, costFunc);
         }
 
         public void SetParameters(double? learningRate=null, CostFunction? costFunc = null)
@@ -51,9 +53,12 @@ namespace NeuralNet.cs
                 LearningRate = (double)learningRate;
         }
 
-        public void Add(ILayer layer)
+        public void Add(ILayer layer,int pos = -1)
         {
-            Layers.Add(layer);
+            if (pos == -1)
+                Layers.Add(layer);
+            else
+                Layers.Insert(pos, layer);
         }
 
         /// <summary>
@@ -102,7 +107,7 @@ namespace NeuralNet.cs
             double nRight = 0;
             foreach(TrainingData td in testData)
             {
-                if (Process(td.Data).MaximumIndex() == td.GetLabelVector().MaximumIndex())
+                if (SoftMax(Process(td.Data)).MaximumIndex() == td.GetLabelVector().MaximumIndex())
                     nRight++;
             }
 
@@ -121,6 +126,30 @@ namespace NeuralNet.cs
         {
             foreach (ILayer l in Layers)
                 l.ApplyUpdate();
+        }
+
+        private Vector<double> SoftMax(Vector<double> x)
+        {
+            Vector<double> ret = DenseVector.OfVector(x);
+            double sum = 0;
+            for (var i = 0; i < ret.Count; i++)
+            {
+                ret[i] = Math.Exp(ret[i]);
+                sum += ret[i];
+            }
+            for (var i = 0; i < ret.Count; i++)
+                ret[i] /= sum;
+            return ret;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder res = new StringBuilder();
+            foreach(ILayer l in Layers)
+            {
+                res.Append(l.DimensionString());
+            }
+            return res.ToString();
         }
     }
 }

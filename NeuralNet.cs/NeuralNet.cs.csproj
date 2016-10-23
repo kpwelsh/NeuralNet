@@ -47,18 +47,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AMenu.cs" />
     <Compile Include="ConvLayer.cs" />
     <Compile Include="CrossEntropy.cs" />
     <Compile Include="IActivationFunction.cs" />
     <Compile Include="ICostFunction.cs" />
     <Compile Include="ILayer.cs" />
+    <Compile Include="IMenu.cs" />
     <Compile Include="Layer.cs" />
+    <Compile Include="LayerBuilderMenu.cs" />
+    <Compile Include="LayerDesigner.cs" />
+    <Compile Include="MenuController.cs" />
+    <Compile Include="NNDesignerMenu.cs" />
+    <Compile Include="NNLoadMenu.cs" />
+    <Compile Include="MainMenu.cs" />
     <Compile Include="MeanSquare.cs" />
     <Compile Include="Net.cs" />
+    <Compile Include="NNBuilderMenu.cs" />
     <Compile Include="NNException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SelectActivationFunction.cs" />
     <Compile Include="Sigmoid.cs" />
+    <Compile Include="Text.cs" />
     <Compile Include="TrainingData.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -13,5 +13,6 @@ namespace NeuralNet.cs
         Vector<double> Process(Vector<double> input);
         Vector<double> PropogateError(Vector<double> outputError, double errorWeight);
         void ApplyUpdate();
+        string DimensionString();
     }
 }
