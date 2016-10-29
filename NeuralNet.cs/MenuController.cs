@@ -11,6 +11,11 @@ namespace NeuralNet.cs
         static Net CurrentNet;
         static Layer CurrentLayer;
 
+        public static int NumberOfLayers()
+        {
+            return CurrentNet.Count;
+        }
+
         public static void InitializeNN()
         {
             if(CurrentNet == null)
@@ -34,7 +39,8 @@ namespace NeuralNet.cs
 
         public static void InsertLayer(int pos = -1)
         {
-            CurrentNet.Add(CurrentLayer, pos);
+            if(CurrentLayer != null)
+                CurrentNet.Add(CurrentLayer, pos);
         }
 
         public static string AvailableLayerPositions()

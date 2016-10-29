@@ -169,7 +169,7 @@ namespace NeuralNet.cs
             return res;
         }
 
-        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight)
+        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null)
         {
             
             int nNodes = OutputHeight * OutputWidth;
@@ -225,6 +225,16 @@ namespace NeuralNet.cs
         public string DimensionString()
         {
             return InputWidth + "x" + InputHeight + "x" + InputDepth + "|" + OutputWidth + "x" + OutputHeight + "x" + OutputDepth;
+        }
+
+        public int GetInputDimension()
+        {
+            return InputSize;
+        }
+
+        public int GetOutputDimension()
+        {
+            return OutputSize;
         }
     }
 }

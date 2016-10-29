@@ -41,7 +41,7 @@ namespace NeuralNet.cs
 
         public override string Header()
         {
-            return "Here is the current layer\n" + MenuController.DisplayNetSummary();
+            return "Here is the current layer\n" + MenuController.DisplayLayerSummary();
         }
 
         private void ChangeInput()

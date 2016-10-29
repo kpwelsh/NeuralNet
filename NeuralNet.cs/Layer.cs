@@ -22,7 +22,7 @@ namespace NeuralNet.cs
 
         private Normal gaussDist;
         private bool? Normalize;
-        private double NormalizationWeight = 0.01;
+        private double NormalizationWeight = 0.1;
 
         private bool Configured = true;
 
@@ -46,6 +46,9 @@ namespace NeuralNet.cs
                     break;
                 case ActivationFunction.SoftPlus:
                     ActFunc = new SoftPlus();
+                    break;
+                case ActivationFunction.Identity:
+                    ActFunc = new Identity();
                     break;
                 case null:
                     Configured = false;
@@ -93,9 +96,15 @@ namespace NeuralNet.cs
             return Output;
         }
 
-        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight)
+        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight,Vector<double> inputCacheOverride = null)
         {
-            Vector<double> inputError = outputError.PointwiseMultiply(ActFunc.Derivative(InputCache * Weights));
+            Vector<double> inputError;
+
+            if(inputCacheOverride == null)
+                inputError = outputError.PointwiseMultiply(ActFunc.Derivative(InputCache * Weights));
+            else
+                inputError = outputError.PointwiseMultiply(ActFunc.Derivative(inputCacheOverride * Weights));
+
             BiasErrorCache -= inputError * errorWeight;
             WeightErrorCache -= errorWeight * InputCache.OuterProduct(inputError);
             if ((bool)Normalize)
@@ -119,6 +128,25 @@ namespace NeuralNet.cs
         public string DimensionString()
         {
             return InputDimension + "|" + OutputDimension;
+        }
+
+        public override string ToString()
+        {
+            return 
+                "Input Dimension: " + (InputDimension != null ? "" + InputDimension : "-") + "\n" + 
+                "Output Dimension: " + (OutputDimension != null ? "" + OutputDimension : "-") + "\n" + 
+                "Activation Function: " + (ActFunc != null ? "" + ActFunc : "-") + "\n" + 
+                "Normalization Weight: " + ((bool)Normalize ? NormalizationWeight : 0 );
+        }
+
+        public int GetInputDimension()
+        {
+            return (int)InputDimension;
+        }
+
+        public int GetOutputDimension()
+        {
+            return (int)OutputDimension;
         }
     }
 }

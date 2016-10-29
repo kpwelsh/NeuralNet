@@ -10,6 +10,7 @@ namespace NeuralNet.cs
 {
     class Net
     {
+        #region Properties
         private List<ILayer> Layers;
         public ILayer this[int n]
         {
@@ -29,12 +30,16 @@ namespace NeuralNet.cs
 
         private ICostFunction CostFunc;
         private double LearningRate;
+        #endregion
 
+        #region Constructor
         public Net()
         {
             Layers = new List<ILayer>();
         }
+        #endregion
 
+        #region Public Methods
         public void SetParameters(double? learningRate=null, CostFunction? costFunc = null)
         {
             if(costFunc!=null)
@@ -114,6 +119,18 @@ namespace NeuralNet.cs
             return nRight / testData.Count;
         }
 
+        public override string ToString()
+        {
+            StringBuilder res = new StringBuilder();
+            foreach (ILayer l in Layers)
+            {
+                res.Append(l.DimensionString());
+            }
+            return res.ToString();
+        }
+        #endregion
+
+        #region Private Methods
         private void PropogateError(Vector<double> outputError, int batchSize)
         {
             for(var i = Layers.Count-1; i>=0; i--)
@@ -141,15 +158,6 @@ namespace NeuralNet.cs
                 ret[i] /= sum;
             return ret;
         }
-
-        public override string ToString()
-        {
-            StringBuilder res = new StringBuilder();
-            foreach(ILayer l in Layers)
-            {
-                res.Append(l.DimensionString());
-            }
-            return res.ToString();
-        }
+        #endregion
     }
 }

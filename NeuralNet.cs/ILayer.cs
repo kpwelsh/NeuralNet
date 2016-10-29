@@ -11,8 +11,10 @@ namespace NeuralNet.cs
     interface ILayer
     {
         Vector<double> Process(Vector<double> input);
-        Vector<double> PropogateError(Vector<double> outputError, double errorWeight);
+        Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null);
         void ApplyUpdate();
         string DimensionString();
+        int GetInputDimension();
+        int GetOutputDimension();
     }
 }

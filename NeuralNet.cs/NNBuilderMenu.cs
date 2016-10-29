@@ -19,6 +19,12 @@ namespace NeuralNet.cs
                     "Add a layer",
                     () => AddLayer()
                 ));
+            Options.Add(
+                new Tuple<int, string, CallBack>(
+                    2,
+                    "Edit a layer",
+                    () => EditLayer()
+                ));
         }
 
         public override string Header()
@@ -34,8 +40,18 @@ namespace NeuralNet.cs
                 Text.ShowMenu(new LayerDesigner());
                 MenuController.InsertLayer((int)val);
             }
+        }
 
-            Text.ShowMenu(this);
+        private void EditLayer()
+        {
+            if (MenuController.NumberOfLayers() == 0)
+                return;
+            int? val = Text.GetInt("Which would you like to edit " + MenuController.AvailableLayerPositions() + "? ");
+            if (val != null)
+            {
+                Text.ShowMenu(new LayerDesigner());
+                MenuController.InsertLayer((int)val);
+            }
         }
     }
 }

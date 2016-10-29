@@ -93,7 +93,54 @@ namespace NeuralNet.cs
             }
         }
 
+        static void LoadSinSeq(out HashSet<List<TrainingData>> data, double dt, int seqLength, int nData)
+        {
+            data = new HashSet<List<TrainingData>>();
+            ContinuousUniform rand = new ContinuousUniform(0, 2 * Math.PI);
+            for(var i = 0; i < nData; i++)
+            {
+                double theta = rand.Sample();
+                List<TrainingData> ts = new List<TrainingData>();
+                for(var j = 0; j < seqLength; j++)
+                {
+                    TrainingData td = new TrainingData(0, 1);
+                    theta += dt;
+                    td.SetLabelVector(DenseVector.Create(1, Math.Sin(theta)));
+                    ts.Add(td);
+                }
+                data.Add(ts);
+            }
+        }
+
         static void Main(string[] args)
+        {
+            HashSet<List<TrainingData>> training;
+            HashSet<List<TrainingData>> test;
+            LoadSinSeq(out training, 0.1, 300, 1000);
+            LoadSinSeq(out test, 0.1, 300, 1000);
+
+            FullyConnectedRNN net = new FullyConnectedRNN(0.01);
+            net.SetParameters(0.001, CostFunction.MeanSquare, true);
+            net.SetHiddenLayer(new Layer(20, 20, ActivationFunction.Sigmoid,true));
+            net.SetOutputLayer(new Layer(20, 1, ActivationFunction.Identity,true));
+
+            int epochs = 1;
+            do
+            {
+                for (var i = 0; i < epochs; i++)
+                {
+                    List<double> costs = net.Learn(training, 1);
+                    Console.WriteLine("---------------------------------------");
+                    Console.WriteLine(string.Format("Final Cost: {0}", costs[costs.Count - 1]));
+                    Console.WriteLine(string.Format("Error on test set: {0}", net.TestAccuracy(test)));
+                    Console.WriteLine("Epoch Complete");
+                    Console.WriteLine("---------------------------------------");
+                }
+                Console.Write("\nEnter the number of training epochs: ");
+            } while (int.TryParse(Console.ReadLine(), out epochs));
+        }
+
+        static void TrainFeedForward()
         {
             HashSet<TrainingData> total;
             HashSet<TrainingData> td;
@@ -110,7 +157,6 @@ namespace NeuralNet.cs
             //net.Add(l);
             //LoadNames(out total, "HashedNames.csv",20000);
             //SplitSet(total, out td, out test, 0.9);
-
             Text.ShowMenu(new MainMenu());
 
             LoadMnist(out td, "mnist_train.csv", 60000);
@@ -118,8 +164,8 @@ namespace NeuralNet.cs
 
             Net net = new Net();
             net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
-            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid,true));
-            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid,true));
+            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid, true));
+            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid, true));
 
 
             int epochs = 1;
@@ -129,13 +175,13 @@ namespace NeuralNet.cs
                 {
                     List<double> costs = net.Learn(td, 100);
                     Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(string.Format("Final Cost: {0}",costs[costs.Count - 1]));
-                    Console.WriteLine(string.Format("Correctness on test set: {0}",net.TestClassification(test)));
+                    Console.WriteLine(string.Format("Final Cost: {0}", costs[costs.Count - 1]));
+                    Console.WriteLine(string.Format("Correctness on test set: {0}", net.TestClassification(test)));
                     Console.WriteLine("Epoch Complete");
                     Console.WriteLine("---------------------------------------");
                 }
                 Console.Write("\nEnter the number of training epochs: ");
-            }while (int.TryParse(Console.ReadLine(),out epochs));
+            } while (int.TryParse(Console.ReadLine(), out epochs));
 
             //double diff = 0;
             //foreach (TrainingData t in test)

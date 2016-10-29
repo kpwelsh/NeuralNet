@@ -37,10 +37,9 @@ namespace NeuralNet.cs
                         intVal = (int)val;
                     }
                 }
-                if (input.ToUpper().Equals("Q"))
+                if (input.ToUpper().Equals(""))
                 {
-                    done = false;
-                    break;
+                    BackUp++;
                 }
                 if (done)
                     menu.DoChoice(intVal);

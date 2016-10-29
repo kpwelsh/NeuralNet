@@ -50,6 +50,7 @@
     <Compile Include="AMenu.cs" />
     <Compile Include="ConvLayer.cs" />
     <Compile Include="CrossEntropy.cs" />
+    <Compile Include="FullyConnectedRNN.cs" />
     <Compile Include="IActivationFunction.cs" />
     <Compile Include="ICostFunction.cs" />
     <Compile Include="ILayer.cs" />

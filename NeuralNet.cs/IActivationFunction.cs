@@ -9,7 +9,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 namespace NeuralNet.cs
 {
 
-    enum ActivationFunction { Sigmoid, ReLU, SoftPlus}
+    enum ActivationFunction { Sigmoid, ReLU, SoftPlus, Identity}
     interface IActivationFunction
     {
         Vector<double> Of(Vector<double> x);
@@ -50,6 +50,21 @@ namespace NeuralNet.cs
             Vector<double> ret = DenseVector.OfVector(x);
             for (var i = 0; i < ret.Count; i++)
                 ret[i] = ret[i] > 0 ? ret[i] : 0;
+            return ret;
+        }
+    }
+
+    public class Identity : IActivationFunction
+    {
+        public Vector<double> Derivative(Vector<double> x)
+        {
+            Vector<double> ret = DenseVector.Create(x.Count, 1);
+            return ret;
+        }
+
+        public Vector<double> Of(Vector<double> x)
+        {
+            Vector<double> ret = DenseVector.OfVector(x);
             return ret;
         }
     }

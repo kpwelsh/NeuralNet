@@ -38,7 +38,10 @@ namespace NeuralNet
         #region Constructors
         public TrainingData(int dataLength, int labelLength)
         {
-            Data = new DenseVector(dataLength);
+            if (dataLength == 0)
+                Data = null;
+            else
+                Data = new DenseVector(dataLength);
             vectorLabel = new DenseVector(labelLength);
             dirtyLabel = true;
         }
