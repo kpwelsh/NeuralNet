@@ -7,31 +7,25 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Distributions;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
-    class Layer : ILayer
+    public class Layer : ALayer
     {
-        public Vector<double> Output;
         public Matrix<double> Weights;
         public Vector<double> Biases;
 
         private Vector<double> BiasErrorCache;
         private Matrix<double> WeightErrorCache;
         private Vector<double> InputCache;
-        private IActivationFunction ActFunc;
 
         private Normal gaussDist;
-        private bool? Normalize;
-        private double NormalizationWeight = 0.1;
+        private double NormalizationWeight = 0.01;
 
         private bool Configured = true;
 
-        private int? InputDimension;
-        private int? OutputDimension;
-
-        public Layer(int? inputDimension = null,int? outputDimension = null, ActivationFunction? actFunc = null, bool normalization = false)
+        internal Layer(int? inputDimension = null,int? outputDimension = null, ActivationFunction? actFunc = null, RegularizationMode regMode = RegularizationMode.None)
         {
-            SetParameters(inputDimension, outputDimension, actFunc, normalization);
+            SetParameters(inputDimension, outputDimension, actFunc, regMode);
         }
 
         private void SetActFunc(ActivationFunction? actFunc)
@@ -61,18 +55,17 @@ namespace NeuralNet.cs
 
         private void InitializeWeights()
         {
-            gaussDist = new Normal(0, 1 / Math.Sqrt((int)OutputDimension));
+            gaussDist = new Normal(0, 1 / Math.Sqrt(OutputDimension));
+            
+            Biases = DenseVector.CreateRandom(OutputDimension, gaussDist);
+            Weights = DenseMatrix.CreateRandom(InputDimension, OutputDimension, gaussDist);
 
-            Output = new DenseVector((int)OutputDimension);
-            Biases = DenseVector.CreateRandom((int)OutputDimension, gaussDist);
-            Weights = DenseMatrix.CreateRandom((int)InputDimension, (int)OutputDimension, gaussDist);
-
-            BiasErrorCache = new DenseVector((int)OutputDimension);
-            WeightErrorCache = new DenseMatrix((int)InputDimension, (int)OutputDimension);
-            InputCache = new DenseVector((int)InputDimension);
+            BiasErrorCache = new DenseVector(OutputDimension);
+            WeightErrorCache = new DenseMatrix(InputDimension, OutputDimension);
+            InputCache = new DenseVector(InputDimension);
         }
 
-        public void SetParameters(int? inputDimension = null, int? outputDimension = null, ActivationFunction? actFunc = null, bool? normalization = null)
+        internal void SetParameters(int? inputDimension = null, int? outputDimension = null, ActivationFunction? actFunc = null, RegularizationMode? regMode = null)
         {
             if (inputDimension != null)
                 InputDimension = (int)inputDimension;
@@ -80,23 +73,22 @@ namespace NeuralNet.cs
                 OutputDimension = (int)outputDimension;
             if (actFunc != null)
                 SetActFunc(actFunc);
-            if (normalization != null)
-                Normalize = (bool)normalization;
+            if (regMode != null)
+                RegMode = (RegularizationMode)regMode;
 
-            if (InputDimension != null && OutputDimension != null)
+            if (this.inputDimension != null && this.outputDimension != null)
                 InitializeWeights();
 
-            Configured = InputDimension != null && OutputDimension != null && ActFunc != null && Normalize != null;
+            Configured = this.inputDimension != null && this.outputDimension != null && ActFunc != null;
         }
 
-        public Vector<double> Process(Vector<double> input)
+        internal override Vector<double> Process(Vector<double> input)
         {
             InputCache = input;
-            Output = ActFunc.Of(input * Weights);
-            return Output;
+            return ActFunc.Of(input * Weights);
         }
 
-        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight,Vector<double> inputCacheOverride = null)
+        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight,Vector<double> inputCacheOverride = null)
         {
             Vector<double> inputError;
 
@@ -107,7 +99,7 @@ namespace NeuralNet.cs
 
             BiasErrorCache -= inputError * errorWeight;
             WeightErrorCache -= errorWeight * InputCache.OuterProduct(inputError);
-            if ((bool)Normalize)
+            if (RegMode == RegularizationMode.L2)
             {
                 WeightErrorCache -= errorWeight * NormalizationWeight * Weights;
             }
@@ -117,36 +109,12 @@ namespace NeuralNet.cs
         /// <summary>
         /// Consumes the cached Weight and Bias errors to update the weights and biases for the layer.
         /// </summary>
-        public void ApplyUpdate()
+        internal override void ApplyUpdate()
         {
             Weights += WeightErrorCache;
             Biases += BiasErrorCache;
             WeightErrorCache.Clear();
             Biases.Clear();
-        }
-
-        public string DimensionString()
-        {
-            return InputDimension + "|" + OutputDimension;
-        }
-
-        public override string ToString()
-        {
-            return 
-                "Input Dimension: " + (InputDimension != null ? "" + InputDimension : "-") + "\n" + 
-                "Output Dimension: " + (OutputDimension != null ? "" + OutputDimension : "-") + "\n" + 
-                "Activation Function: " + (ActFunc != null ? "" + ActFunc : "-") + "\n" + 
-                "Normalization Weight: " + ((bool)Normalize ? NormalizationWeight : 0 );
-        }
-
-        public int GetInputDimension()
-        {
-            return (int)InputDimension;
-        }
-
-        public int GetOutputDimension()
-        {
-            return (int)OutputDimension;
         }
     }
 }

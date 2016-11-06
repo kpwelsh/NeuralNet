@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
 
     [Serializable]

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
 
-    enum ActivationFunction { Sigmoid, ReLU, SoftPlus, Identity}
-    interface IActivationFunction
+    public enum ActivationFunction { Sigmoid, ReLU, SoftPlus, Identity}
+    public interface IActivationFunction
     {
         Vector<double> Of(Vector<double> x);
         Vector<double> Derivative(Vector<double> x);

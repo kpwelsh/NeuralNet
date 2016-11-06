@@ -8,29 +8,11 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Distributions;
 using System.IO;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
     class Program
     {
-        static void LoadMnist(out HashSet<TrainingData> data, string fp, int nDataPoints)
-        {
-            data = new HashSet<TrainingData>();
-            using (StreamReader trainingIn = new StreamReader(fp))
-            {
-                int n = 0;
-                while (!trainingIn.EndOfStream && n < nDataPoints)
-                {
-                    string[] line = trainingIn.ReadLine().Split(',');
-                    TrainingData td = new TrainingData(784, 10);
-                    td.IntLabel = int.Parse(line[0]);
-                    for (var i = 1; i <= 784; i++)
-                        td.Data[i - 1] = double.Parse(line[i]) / 255;
-                    data.Add(td);
-                    n++;
-                }
-            }
-        }
-
+        static List<double> Costs = new List<double>();
         static void LoadMultiplication(out HashSet<TrainingData> data, int digits, int n)
         {
             data = new HashSet<TrainingData>();
@@ -44,7 +26,7 @@ namespace NeuralNet.cs
                 double scale = Math.Pow(10, digits);
                 td.Data[0] = x / scale;
                 td.Data[1] = y / scale;
-                td.SetLabelVector(DenseVector.Create(1, z / Math.Pow(10, 2 * digits)));
+                td.Response = DenseVector.Create(1, z / Math.Pow(10, 2 * digits));
 
                 data.Add(td);
             }
@@ -67,72 +49,65 @@ namespace NeuralNet.cs
                 TrainingData td = new TrainingData(1, 1);
                 double scale = Math.PI;
                 td.Data[0] = x / scale;
-                td.SetLabelVector(DenseVector.Create(1, Math.Sin(x)));
+                td.Response = DenseVector.Create(1, Math.Sin(x));
 
                 data.Add(td);
             }
         }
 
-        static void LoadNames(out HashSet<TrainingData> data, string fp, int nDataPoints)
+        static void LoadSinSeq(out HashSet<TrainingData> data, double dt, int seqLength, int nData)
         {
             data = new HashSet<TrainingData>();
-            using (StreamReader trainingIn = new StreamReader(fp))
-            {
-                int n = 0;
-                while (!trainingIn.EndOfStream && n < nDataPoints)
-                {
-                    string l = trainingIn.ReadLine();
-                    string[] line = l.Split(',');
-                    TrainingData td = new TrainingData(64, 2);
-                    td.IntLabel = int.Parse(line[64]);
-                    for (var i = 0; i < 64; i++)
-                        td.Data[i] = double.Parse(line[i]);
-                    data.Add(td);
-                    n++;
-                }
-            }
-        }
-
-        static void LoadSinSeq(out HashSet<List<TrainingData>> data, double dt, int seqLength, int nData)
-        {
-            data = new HashSet<List<TrainingData>>();
             ContinuousUniform rand = new ContinuousUniform(0, 2 * Math.PI);
             for(var i = 0; i < nData; i++)
             {
                 double theta = rand.Sample();
-                List<TrainingData> ts = new List<TrainingData>();
+                TrainingData td = new TrainingData(0,1);
                 for(var j = 0; j < seqLength; j++)
                 {
-                    TrainingData td = new TrainingData(0, 1);
+                    TrainingData.TrainingPair pair = new TrainingData.TrainingPair();
                     theta += dt;
-                    td.SetLabelVector(DenseVector.Create(1, Math.Sin(theta)));
-                    ts.Add(td);
+                    pair.Response = DenseVector.Create(1, Math.Sin(theta));
+                    td[j] = pair;
                 }
-                data.Add(ts);
+                data.Add(td);
             }
         }
 
         static void Main(string[] args)
         {
-            HashSet<List<TrainingData>> training;
-            HashSet<List<TrainingData>> test;
-            LoadSinSeq(out training, 0.1, 300, 1000);
-            LoadSinSeq(out test, 0.1, 300, 1000);
+            TrainFeedForward();
+        }
 
-            FullyConnectedRNN net = new FullyConnectedRNN(0.01);
+        static void AddToCosts(params double[] vals)
+        {
+            foreach (double d in vals)
+                Costs.Add(d);
+        }
+
+        static void TrainRNN()
+        {
+            HashSet<TrainingData> training;
+            //HashSet<TrainingData> test;
+            LoadSinSeq(out training, 0.25, 3000, 2);
+            //LoadSinSeq(out test, 0.25, 300, 1000);
+            int size = 20;
+
+            FullyConnectedRNN net = new FullyConnectedRNN(0.01, 5);
             net.SetParameters(0.001, CostFunction.MeanSquare, true);
-            net.SetHiddenLayer(new Layer(20, 20, ActivationFunction.Sigmoid,true));
-            net.SetOutputLayer(new Layer(20, 1, ActivationFunction.Identity,true));
+            net.SetHiddenLayer(new Layer(size + 1, size, ActivationFunction.Sigmoid, RegularizationMode.None));
+            net.SetOutputLayer(new Layer(size, 1, ActivationFunction.Identity, RegularizationMode.None));
 
+            net.AddBatchLevelPP(AddToCosts);
             int epochs = 1;
             do
             {
                 for (var i = 0; i < epochs; i++)
                 {
-                    List<double> costs = net.Learn(training, 1);
+                    net.Learn(training, 1);
                     Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(string.Format("Final Cost: {0}", costs[costs.Count - 1]));
-                    Console.WriteLine(string.Format("Error on test set: {0}", net.TestAccuracy(test)));
+                    Console.WriteLine($"Last Cost: {Costs.Last()}");
+                    Console.WriteLine(string.Format("Error on test set: {0}", net.Test(training)));
                     Console.WriteLine("Epoch Complete");
                     Console.WriteLine("---------------------------------------");
                 }
@@ -142,61 +117,27 @@ namespace NeuralNet.cs
 
         static void TrainFeedForward()
         {
-            HashSet<TrainingData> total;
-            HashSet<TrainingData> td;
-            HashSet<TrainingData> test;
-            //int nDigits = 2;
-            //LoadMultiplication(out td, nDigits, 10000);
-            //LoadMultiplication(out test, nDigits, 10000);
-            //LoadSin(out td, 10000);
-            //LoadSin(out test, 10000);
 
-            //ConvLayer l = new ConvLayer(5, 1, 5, 28, 28, 1);
-            //net.Add(l);
-            //l = new ConvLayer(2, 2, 1, l.OutputHeight, l.OutputWidth, l.OutputDepth);
-            //net.Add(l);
-            //LoadNames(out total, "HashedNames.csv",20000);
-            //SplitSet(total, out td, out test, 0.9);
-            Text.ShowMenu(new MainMenu());
+            MenuController.LoadTrainingSet("mnist_train", "smallMnist_train.csv");
+            MenuController.LoadTestSet("mnist_test", "newMnist_test.csv");
 
-            LoadMnist(out td, "mnist_train.csv", 60000);
-            LoadMnist(out test, "mnist_test.csv", 10000);
-
-            Net net = new Net();
+            MLP net = new MLP();
             net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
-            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid, true));
-            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid, true));
+            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid));
+            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid));
 
+            MenuController.CurrentNet = net;
+            MenuController.AddEpochPP(PrintToScreen);
 
-            int epochs = 1;
-            do
-            {
-                for (var i = 0; i < epochs; i++)
-                {
-                    List<double> costs = net.Learn(td, 100);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(string.Format("Final Cost: {0}", costs[costs.Count - 1]));
-                    Console.WriteLine(string.Format("Correctness on test set: {0}", net.TestClassification(test)));
-                    Console.WriteLine("Epoch Complete");
-                    Console.WriteLine("---------------------------------------");
-                }
-                Console.Write("\nEnter the number of training epochs: ");
-            } while (int.TryParse(Console.ReadLine(), out epochs));
+            MenuController.TrainNet("mnist_train", "mnist_test", 2, 100);
+        }
 
-            //double diff = 0;
-            //foreach (TrainingData t in test)
-            //{
-            //    if(t.GetLabelVector()[0] > float.Epsilon)
-            //        diff += Math.Abs(net.Process(t.Data)[0] - t.GetLabelVector()[0]) / t.GetLabelVector()[0];
-            //}
-
-
-            //Console.WriteLine(string.Format("Average Error: {0}%", 100 * diff / test.Count));
-            //for (var i = 0; i < 10; i++)
-            //{
-            //    TrainingData d = test.ElementAt(i);
-            //    Console.WriteLine(string.Format("Guess: {0}\n Actual: {1}", net.Process(d.Data)[0], d.GetLabelVector()[0]));
-            //}
+        private static void PrintToScreen(params double[] vals)
+        {
+            Console.WriteLine("---------------------------------------");
+            Console.WriteLine(string.Format("Percent succes on test set: {0}", vals[0]));
+            Console.WriteLine("Epoch Complete");
+            Console.WriteLine("---------------------------------------");
         }
 
         /// <summary>

@@ -7,9 +7,9 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Distributions;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
-    class ConvLayer : ILayer
+    public class ConvLayer : ALayer
     {
         #region Properties
         public int Range
@@ -42,11 +42,6 @@ namespace NeuralNet.cs
             get;
             private set;
         }
-        public int InputSize
-        {
-            get;
-            private set;
-        }
         public int OutputWidth
         {
             get;
@@ -62,26 +57,19 @@ namespace NeuralNet.cs
             get;
             private set;
         }
-        public int OutputSize
-        {
-            get;
-            private set;
-        }
         #endregion
 
-
+        #region Private Fields
         private Vector<double> InputCache;
         private Vector<double> DirectInputCache;
         private Matrix<double>[] Weights;
         private double[] Biases;
         private Matrix<double>[] WeightErrorCache;
         private double[] BiasErrorCache;
-
-        private IActivationFunction ActFunc;
-
         private Normal gaussDist;
+        #endregion
 
-        public ConvLayer(int range, int stride, int nFilters, int inputWidth, int inputHeight, int inputDepth = 1)
+        internal ConvLayer(int range, int stride, int nFilters, int inputWidth, int inputHeight, int inputDepth = 1)
         {
             Range = range;
             Stride = stride;
@@ -109,36 +97,23 @@ namespace NeuralNet.cs
             }
 
             SetOutputDimensions();
-            DirectInputCache = new DenseVector(OutputSize);
+            DirectInputCache = new DenseVector(OutputDimension);
 
             ActFunc = new Sigmoid();
         }
 
-        private void SetOutputDimensions()
-        {
-            float width = (InputWidth - Range + 1) / Stride;
-            float height = (InputHeight - Range + 1) / Stride;
-            OutputWidth = (int)width;
-            OutputHeight = (int)height;
-            if (OutputWidth != width || OutputHeight != height)
-                throw new NNException(string.Format("Invalid ConvLayer dimensions.\nRange: {0}\nStride: {1}\nInput: {2}x{3}\nOutput: {4}x{5}",Range,Stride,InputHeight,InputWidth,height,width));
-
-            OutputDepth = InputDepth * NFilters;
-            OutputSize = OutputDepth * OutputHeight * OutputWidth;
-            InputSize = InputDepth * InputHeight * InputWidth;
-        }
-
-        public Vector<double> Process(Vector<double> input)
+        #region ALayer Implementation
+        internal override Vector<double> Process(Vector<double> input)
         {
             InputCache = input;
 
-            for(var i = 0; i < OutputHeight; i++)
+            for (var i = 0; i < OutputHeight; i++)
             {
-                for(var j = 0; j < OutputWidth; j++)
+                for (var j = 0; j < OutputWidth; j++)
                 {
-                    for(var inputFrame = 0; inputFrame < InputDepth; inputFrame++)
+                    for (var inputFrame = 0; inputFrame < InputDepth; inputFrame++)
                     {
-                        for(var f = 0; f < NFilters; f++)
+                        for (var f = 0; f < NFilters; f++)
                         {
                             // (inputFrame * NFilters + f) =  the output frame
                             // OutputHeight * OutputWidth = Number of pixels per frame
@@ -148,34 +123,16 @@ namespace NeuralNet.cs
                     }
                 }
             }
-            return 10*(ActFunc.Of(DirectInputCache) - 0.5);  // DEBUG 10*
+            return 10 * (ActFunc.Of(DirectInputCache) - 0.5);  // DEBUG 10*
         }
 
-        private double ApplyFilter(Vector<double> input, int depth, int f, int i, int j)
-        {
-            double res = 0;
-            int depthOffset = depth * OutputHeight * OutputWidth;
-            Matrix<double> weight = Weights[f];
-            for(var m = 0; m < weight.RowCount; m++)
-            {
-                for(var n = 0; n < weight.ColumnCount; n++)
-                {
-                    // (i + m) = the row of the 2d input
-                    // j + n = the column of the 2d input
-                    res += weight[m, n] * input[depthOffset + (i + m) * InputWidth + j + n];
-                }
-            }
-
-            return res;
-        }
-
-        public Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null)
+        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null)
         {
             
             int nNodes = OutputHeight * OutputWidth;
             int nInputNodes = InputHeight * InputWidth;
             Vector<double> directInputError = 10*outputError.PointwiseMultiply(ActFunc.Derivative(DirectInputCache)); // DEBUG 10*
-            Vector<double> inputError = new DenseVector(InputSize);
+            Vector<double> inputError = new DenseVector(InputDimension);
 
             for (var channel = 0; channel < InputDepth; channel++)
             {
@@ -210,7 +167,7 @@ namespace NeuralNet.cs
             return inputError;
         }
 
-        public void ApplyUpdate()
+        internal override void ApplyUpdate()
         {
             for(var i = 0; i < NFilters; i++)
             {
@@ -220,21 +177,40 @@ namespace NeuralNet.cs
                 BiasErrorCache[i] = 0;
             }
         }
+        #endregion
 
-
-        public string DimensionString()
+        #region Private
+        private void SetOutputDimensions()
         {
-            return InputWidth + "x" + InputHeight + "x" + InputDepth + "|" + OutputWidth + "x" + OutputHeight + "x" + OutputDepth;
+            float width = (InputWidth - Range + 1) / Stride;
+            float height = (InputHeight - Range + 1) / Stride;
+            OutputWidth = (int)width;
+            OutputHeight = (int)height;
+            if (OutputWidth != width || OutputHeight != height)
+                throw new NNException(string.Format("Invalid ConvLayer dimensions.\nRange: {0}\nStride: {1}\nInput: {2}x{3}\nOutput: {4}x{5}", Range, Stride, InputHeight, InputWidth, height, width));
+
+            OutputDepth = InputDepth * NFilters;
+            OutputDimension = OutputDepth * OutputHeight * OutputWidth;
+            InputDimension = InputDepth * InputHeight * InputWidth;
         }
 
-        public int GetInputDimension()
+        private double ApplyFilter(Vector<double> input, int depth, int f, int i, int j)
         {
-            return InputSize;
-        }
+            double res = 0;
+            int depthOffset = depth * OutputHeight * OutputWidth;
+            Matrix<double> weight = Weights[f];
+            for (var m = 0; m < weight.RowCount; m++)
+            {
+                for (var n = 0; n < weight.ColumnCount; n++)
+                {
+                    // (i + m) = the row of the 2d input
+                    // j + n = the column of the 2d input
+                    res += weight[m, n] * input[depthOffset + (i + m) * InputWidth + j + n];
+                }
+            }
 
-        public int GetOutputDimension()
-        {
-            return OutputSize;
+            return res;
         }
+        #endregion
     }
 }

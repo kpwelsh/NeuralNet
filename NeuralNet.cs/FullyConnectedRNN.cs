@@ -6,47 +6,44 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
-    class FullyConnectedRNN
+    class FullyConnectedRNN : ANet
     {
-        private ILayer HiddenLayer;
-        private ILayer OutputLayer;
+        private ALayer HiddenLayer;
+        private ALayer OutputLayer;
         private List<Vector<double>> HiddenCache;
         private List<Vector<double>> OutputCache;
         private int MaxMemory;
-        private readonly int _maxMemory = 1000;
         private double TimeStep;
-        private ICostFunction CostFunc;
-        private double LearningRate;
-
         private int HiddenDimension;
         private int OutputDimension;
         private bool ForceOutput = false;
-        private Vector<double> PreviousLabel;
+        private Vector<double> PreviousResponse;
 
-        public FullyConnectedRNN(double timeStep, int? memory = null)
+        #region Internal
+        internal FullyConnectedRNN(double timeStep, int memory = 1)
         {
-            MaxMemory = memory == null ? _maxMemory : (int)memory;
+            MaxMemory = memory;
             TimeStep = timeStep;
 
             HiddenCache = new List<Vector<double>>();
             OutputCache = new List<Vector<double>>();
         }
 
-        public void SetHiddenLayer(ILayer layer)
+        internal void SetHiddenLayer(ALayer layer)
         {
             HiddenLayer = layer;
-            HiddenDimension = layer.GetOutputDimension();
+            HiddenDimension = layer.OutputDimension;
         }
 
-        public void SetOutputLayer(ILayer layer)
+        internal void SetOutputLayer(ALayer layer)
         {
             OutputLayer = layer;
-            OutputDimension = layer.GetOutputDimension();
+            OutputDimension = layer.OutputDimension;
         }
 
-        public void SetParameters(double? learningRate = null, CostFunction? costFunc = null, bool? forceOutput = null)
+        internal void SetParameters(double? learningRate = null, CostFunction? costFunc = null, bool? forceOutput = null)
         {
             if (costFunc != null)
             {
@@ -66,7 +63,7 @@ namespace NeuralNet.cs
                 ForceOutput = (bool)forceOutput;
         }
 
-        public void WipeMemory()
+        internal void WipeMemory()
         {
             HiddenCache.Clear();
             OutputCache.Clear();
@@ -74,80 +71,113 @@ namespace NeuralNet.cs
             OutputCache.Add(new DenseVector(OutputDimension));
         }
 
-        public List<double> Learn(HashSet<List<TrainingData>> trainSet,int batchSize = 1)
+        internal override void Learn(HashSet<TrainingData> trainSet,int batchSize = 1)
         {
             int count = 0;
-            Vector<double> prevOutput;
-            List<double> costs = new List<double>();
+            Vector<double> output;
             double cost = 0;
-            foreach(List<TrainingData> ts in trainSet)
+            foreach(TrainingData trainSeq in trainSet)
             {
-                count++;
+                // Start over for each different training sequence provided.
                 WipeMemory();
-                PreviousLabel = null;
-                foreach (TrainingData td in ts)
+                PreviousResponse = null;
+
+                for(var i = 0; i < trainSeq.Count; i++)
                 {
-                    prevOutput = Process(td.Data);
-                    PreviousLabel = td.GetLabelVector();
-                    cost += CostFunc.Of(ts.Last().GetLabelVector(), prevOutput) / ts.Count;
+                    // Process the pair
+                    TrainingData.TrainingPair pair = trainSeq[i];
+                    output = Process(pair.Data);
+
+                    // If we have completely overwriten our short term memory, then 
+                    // update the weights based on how we performed this time.
+                    count++;
+                    if (count % MaxMemory == 0)
+                    {
+                        PropogateError(trainSeq.SubSequence(Math.Min(i - MaxMemory + 1, 0), i + 1), batchSize);
+                    }
+                    // Count batches by number of error propogations
+                    if (count % (batchSize * MaxMemory) == 0)
+                    {
+                        BatchLevelPP?.Invoke(cost);
+                        ApplyError();
+                        cost = 0;
+                    }
+                    cost += CostFunc.Of(trainSeq[i].Response, output) / (batchSize * MaxMemory);
+
+                    // Keep the last... uhh. this is a PIPI (Parallel Implementation Prone to Inconsistency)
+                    // See this.Process
+                    if (ForceOutput)
+                        PreviousResponse = pair.Response;
+                    else
+                        PreviousResponse = output;
                 }
 
-                PropogateError(ts, batchSize);
-                if (count >= batchSize)
-                {
-                    ApplyError();
-                    costs.Add(cost / count);
-                    Console.WriteLine(costs.Last());
-                    cost = 0;
-                    count = 0;
-                }
             }
-            return costs;
         }
 
-        public double TestAccuracy(HashSet<List<TrainingData>> ts)
+        internal override double Test(HashSet<TrainingData> ts)
         {
             WipeMemory();
             double err = 0;
-            foreach (List<TrainingData> td in ts)
+            foreach (TrainingData td in ts)
             {
-                err += TestAccuracy(td);
+                err += TestOne(td);
             }
             return err / ts.Count;
         }
 
-        public double TestAccuracy(List<TrainingData> ts)
+        internal override Vector<double> Process(Vector<double> input)
+        {
+            Vector<double> fullInput;
+            if (ForceOutput && PreviousResponse != null)
+                fullInput = Concatenate(HiddenLayer.InputDimension, HiddenCache.Last(), PreviousResponse, input);
+            else
+                fullInput = Concatenate(HiddenLayer.InputDimension, HiddenCache.Last(), OutputCache.Last(), input);
+
+            HiddenCache.Add(HiddenLayer.Process(fullInput));
+            OutputCache.Add(OutputLayer.Process(HiddenCache.Last()));
+            if (OutputCache.Count > MaxMemory)
+            {
+                HiddenCache.RemoveAt(0);
+                OutputCache.RemoveAt(0);
+            }
+            return OutputCache.Last();
+        }
+
+        internal double TestOne(TrainingData ts)
         {
             double err = 0;
             Vector<double> output;
             WipeMemory();
-            foreach(TrainingData td in ts)
+            foreach (TrainingData.TrainingPair pair in ts)
             {
-                output = Process(td.Data);
-                err += (output - td.GetLabelVector()).L1Norm();
+                output = Process(pair.Data);
+                err += (output - pair.Response).L1Norm();
+                PreviousResponse = pair.Response;
             }
             return err / ts.Count;
         }
-        
-        public void PropogateError(List<TrainingData> ts,int batchSize)
+        #endregion
+
+        #region Private Methods
+        private void PropogateError(TrainingData ts,int batchSize)
         {
             Vector<double> outputError = new DenseVector(OutputDimension);
             Vector<double> hiddenError = new DenseVector(HiddenDimension);
             Vector<double> jointError;
             Vector<double> jointInput;
-            for(var i = OutputCache.Count - 1; i > 0; i--)
+            for(var i = OutputCache.Count - 1; i >= 0; i--)
             {
                 // Add the error on the output layer from the training data.
-                outputError += CostFunc.Derivative(ts[i - 1].GetLabelVector(), OutputCache[i-1]);
+                outputError += CostFunc.Derivative(ts[i].Response, OutputCache[i]);
 
                 // Add the error on the hidden layer from the output layer.
                 hiddenError += OutputLayer.PropogateError(outputError, LearningRate/batchSize, HiddenCache[i]);
 
+                if (i == 0)
+                    break;
                 // Get the input that went into the hidden layer at this time step.
-                if (i == 1)
-                    jointInput = Concatenate(HiddenLayer.GetInputDimension(), HiddenCache[i - 1], OutputCache[0], ts.First().Data);
-                else
-                    jointInput = Concatenate(HiddenLayer.GetInputDimension(), HiddenCache[i - 1], OutputCache[i - 1], ts[i - 1].Data);
+                jointInput = Concatenate(HiddenLayer.InputDimension, HiddenCache[i - 1], OutputCache[i - 1], ts[i - 1].Data);
                 jointError = HiddenLayer.PropogateError(hiddenError, LearningRate/batchSize, jointInput);
                 Split(jointError, HiddenDimension, out hiddenError, out outputError, OutputDimension);
             }
@@ -199,26 +229,7 @@ namespace NeuralNet.cs
                     v2[i - n] = v[i];
             }
         }
-
-        public Vector<double> Process(Vector<double> input)
-        {
-            if (PreviousLabel == null)
-                PreviousLabel = new DenseVector(OutputLayer.GetOutputDimension());
-            Vector<double> fullInput;
-            if(ForceOutput)
-                fullInput = Concatenate(HiddenLayer.GetInputDimension(), HiddenCache.Last(), PreviousLabel, input);
-            else
-                fullInput = Concatenate(HiddenLayer.GetInputDimension(), HiddenCache.Last(), OutputCache.Last(), input);
-
-            HiddenCache.Add(HiddenLayer.Process(fullInput));
-            OutputCache.Add(OutputLayer.Process(HiddenCache.Last()));
-            if(OutputCache.Count > MaxMemory)
-            {
-                HiddenCache.RemoveAt(0);
-                OutputCache.RemoveAt(0);
-            }
-            return OutputCache.Last();
-        }
+        #endregion
 
     }
 }

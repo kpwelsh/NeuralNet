@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
     [Serializable]
     public class MeanSquare : ICostFunction

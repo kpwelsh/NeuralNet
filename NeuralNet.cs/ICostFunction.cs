@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace NeuralNet.cs
+namespace NeuralNetModel
 {
     public enum CostFunction { MeanSquare, CrossEntropy }
-    interface ICostFunction
+    public interface ICostFunction
     {
         double Of(Vector<double> expected, Vector<double> actual);
         Vector<double> Derivative(Vector<double> expected, Vector<double> actual);

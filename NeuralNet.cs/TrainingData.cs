@@ -6,71 +6,133 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-namespace NeuralNet
+namespace NeuralNetModel
 {
     class TrainingData
     {
-        public Vector<double> Data;
-        private Vector<double> vectorLabel;
-        private int intLabel;
-        private bool dirtyLabel;
-
-        public int IntLabel
+        #region Properties
+        public Vector<double> Data
         {
             get
             {
-                if (dirtyLabel)
-                {
-                    intLabel = vectorLabel.AbsoluteMaximumIndex();
-                    dirtyLabel = false;
-                }
-                return intLabel;
+                return data?[0];
             }
             set
             {
-                vectorLabel[intLabel] = 0;
-                intLabel = value;
-                vectorLabel[intLabel] = 1;
+                data[0] = value;
             }
-
         }
-
-        #region Constructors
-        public TrainingData(int dataLength, int labelLength)
+        public Vector<double> Response
         {
-            if (dataLength == 0)
-                Data = null;
-            else
-                Data = new DenseVector(dataLength);
-            vectorLabel = new DenseVector(labelLength);
-            dirtyLabel = true;
+            get
+            {
+                return response?[0];
+            }
+            set
+            {
+                data[0] = value;
+            }
         }
-
-        public TrainingData(Vector<double> data, Vector<double> label)
+        public int Count
         {
-            Data = data;
-            vectorLabel = label;
-            dirtyLabel = true;
+            get
+            {
+                return data.Count;
+            }
         }
-
-        public TrainingData(Vector<double> data, int labelLength, int label)
+        public TrainingPair this[int i]
         {
-            intLabel = label;
-            Data = data;
-            vectorLabel = new DenseVector(labelLength);
-            vectorLabel[label] = 1;
-            dirtyLabel = false;
+            get
+            {
+                return new TrainingPair(data[i], response[i]);
+            }
+            set
+            {
+                if (data.Count < i)
+                    throw new NNException("Cannot set value out of index range.");
+                else if (data.Count == i)
+                    data.Add(value.Data);
+                else if (data.Count > i)
+                    data[i] = value.Data;
+
+                if (response.Count < i)
+                    throw new NNException("Cannot set value out of index range.");
+                else if (response.Count == i)
+                    response.Add(value.Response);
+                else if (response.Count > i)
+                    response[i] = value.Response;
+            }
         }
         #endregion
-        public void SetLabelVector(Vector<double> label)
+
+        #region Private Fields
+        private List<Vector<double>> data;
+        private List<Vector<double>> response;
+        #endregion
+
+        #region Struct Definition
+        public class TrainingPair
         {
-            vectorLabel = label;
-            dirtyLabel = true;
+            public Vector<double> Data = null;
+            public Vector<double> Response = null;
+
+            public TrainingPair()
+            {
+
+            }
+
+            public TrainingPair(Vector<double> data, Vector<double> response)
+            {
+                Data = data;
+                Response = response;
+            }
+        }
+        #endregion
+
+        #region Constructors
+        public TrainingData(int dataLength, int reponseLength)
+        {
+            data = new List<Vector<double>>();
+            response = new List<Vector<double>>();
+            if (dataLength == 0)
+                data.Add(null);
+            else
+                data.Add(new DenseVector(dataLength));
+            response.Add(new DenseVector(reponseLength));
         }
 
-        public Vector<double> GetLabelVector()
+        /// <summary>
+        /// LOOK OUT! A PRIVATE CONSTRUCTOR!
+        /// </summary>
+        private TrainingData()
         {
-            return vectorLabel;
+            data = new List<Vector<double>>();
+            response = new List<Vector<double>>();
+        }
+        #endregion
+
+        public void AddTrainingPair(Vector<double> data, Vector<double> response)
+        {
+            data.Add(data);
+            response.Add(response);
+        }
+
+        public TrainingData SubSequence(int start, int end)
+        {
+            int dir = Math.Sign(end - start);
+            TrainingData td = new TrainingData();
+            for(var i = start; i < end; i+= dir)
+            {
+                td.data.Add(data[i]);
+                td.response.Add(response[i]);
+            }
+            return td;
+        }
+
+        public IEnumerator<TrainingPair> GetEnumerator()
+        {
+            for (var i = 0; i < Count; i++)
+                yield return this[i];
         }
     }
 }
