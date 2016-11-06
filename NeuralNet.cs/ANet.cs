@@ -25,13 +25,30 @@ namespace NeuralNetModel
         {
             get { return Layers.Count; }
         }
+        private CostFunction _costFunction;
+        public CostFunction CostFunction
+        {
+            get
+            {
+                return _costFunction;
+            }
+            protected set
+            {
+                SetCostFunction(value);
+                _costFunction = value;
+            }
+        }
+        public double LearningRate
+        {
+            get;
+            protected set;
+        }
         #endregion
 
         #region Protected Fields
+        protected ICostFunction CostFunc;
         protected List<ALayer> Layers;
         protected MenuController.ProgrammingPoint BatchLevelPP;
-        protected ICostFunction CostFunc;
-        protected double LearningRate;
         #endregion
 
         #region Public
@@ -56,15 +73,7 @@ namespace NeuralNetModel
         {
             if (costFunc != null)
             {
-                switch (costFunc)
-                {
-                    case CostFunction.MeanSquare:
-                        CostFunc = new MeanSquare();
-                        break;
-                    case CostFunction.CrossEntropy:
-                        CostFunc = new CrossEntropy();
-                        break;
-                }
+                CostFunction = (CostFunction)costFunc;
             }
             if (learningRate != null)
                 LearningRate = (double)learningRate;
@@ -77,6 +86,21 @@ namespace NeuralNetModel
         /// <param name="testSet">Set of training data for the neural net.</param>
         /// <returns>A measure of error on the test set</returns>
         internal abstract double Test(HashSet<TrainingData> testSet);
+        #endregion
+
+        #region Private
+        private void SetCostFunction(CostFunction costFunc)
+        {
+            switch (costFunc)
+            {
+                case CostFunction.MeanSquare:
+                    CostFunc = new MeanSquare();
+                    break;
+                case CostFunction.CrossEntropy:
+                    CostFunc = new CrossEntropy();
+                    break;
+            }
+        }
         #endregion
     }
 }

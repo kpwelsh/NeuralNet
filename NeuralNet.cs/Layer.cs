@@ -27,31 +27,7 @@ namespace NeuralNetModel
         {
             SetParameters(inputDimension, outputDimension, actFunc, regMode);
         }
-
-        private void SetActFunc(ActivationFunction? actFunc)
-        {
-            switch (actFunc)
-            {
-                case ActivationFunction.Sigmoid:
-                    ActFunc = new Sigmoid();
-                    break;
-                case ActivationFunction.ReLU:
-                    ActFunc = new RectiLinear();
-                    break;
-                case ActivationFunction.SoftPlus:
-                    ActFunc = new SoftPlus();
-                    break;
-                case ActivationFunction.Identity:
-                    ActFunc = new Identity();
-                    break;
-                case null:
-                    Configured = false;
-                    ActFunc = null;
-                    break;
-                default:
-                    throw new NNException("No available implementation for activation funciton: " + actFunc.ToString());
-            }
-        }
+        
 
         private void InitializeWeights()
         {
@@ -72,7 +48,7 @@ namespace NeuralNetModel
             if (outputDimension != null)
                 OutputDimension = (int)outputDimension;
             if (actFunc != null)
-                SetActFunc(actFunc);
+                SetActivationFunction((ActivationFunction)actFunc);
             if (regMode != null)
                 RegMode = (RegularizationMode)regMode;
 

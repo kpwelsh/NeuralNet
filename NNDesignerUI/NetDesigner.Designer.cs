@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.OpenFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.PPreview = new System.Windows.Forms.Panel();
             this.hiddenTabControl1 = new NNDesignerUI.HiddenTabControl();
             this.PMainMenu = new System.Windows.Forms.TabPage();
+            this.BEditNet = new System.Windows.Forms.Button();
             this.BTrainNet = new System.Windows.Forms.Button();
             this.BNewNet = new System.Windows.Forms.Button();
             this.PPickANet = new System.Windows.Forms.TabPage();
@@ -57,6 +57,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.PTrainNet = new System.Windows.Forms.TabPage();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.BBack_Train = new System.Windows.Forms.Button();
             this.BStartLearn = new System.Windows.Forms.Button();
             this.SBatchSize = new NNDesignerUI.Slider();
@@ -67,7 +69,8 @@
             this.LBLoadedTrain = new System.Windows.Forms.ListBox();
             this.LMiniBatch = new System.Windows.Forms.Label();
             this.LEpochs = new System.Windows.Forms.Label();
-            this.BEditNet = new System.Windows.Forms.Button();
+            this.PPreview = new System.Windows.Forms.TableLayoutPanel();
+            this.PPreviewEdit = new System.Windows.Forms.Panel();
             this.hiddenTabControl1.SuspendLayout();
             this.PMainMenu.SuspendLayout();
             this.PPickANet.SuspendLayout();
@@ -82,13 +85,6 @@
             // OpenFileDialog
             // 
             this.OpenFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.OpenFileDialog_FileOk);
-            // 
-            // PPreview
-            // 
-            this.PPreview.Location = new System.Drawing.Point(4, 420);
-            this.PPreview.Name = "PPreview";
-            this.PPreview.Size = new System.Drawing.Size(550, 59);
-            this.PPreview.TabIndex = 3;
             // 
             // hiddenTabControl1
             // 
@@ -116,6 +112,16 @@
             this.PMainMenu.TabIndex = 0;
             this.PMainMenu.Text = "MainMenu";
             this.PMainMenu.UseVisualStyleBackColor = true;
+            // 
+            // BEditNet
+            // 
+            this.BEditNet.Location = new System.Drawing.Point(143, 6);
+            this.BEditNet.Name = "BEditNet";
+            this.BEditNet.Size = new System.Drawing.Size(116, 88);
+            this.BEditNet.TabIndex = 2;
+            this.BEditNet.Text = "Edit";
+            this.BEditNet.UseVisualStyleBackColor = true;
+            this.BEditNet.Click += new System.EventHandler(this.BEditNet_Click);
             // 
             // BTrainNet
             // 
@@ -183,13 +189,12 @@
             this.EditMLP.TabIndex = 2;
             this.EditMLP.Text = "EditMLP";
             this.EditMLP.UseVisualStyleBackColor = true;
-            this.EditMLP.Click += new System.EventHandler(this.EditMLP_Click);
             this.EditMLP.Enter += new System.EventHandler(this.EditMLP_Enter);
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(56, 158);
+            this.label6.Location = new System.Drawing.Point(8, 152);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(74, 13);
             this.label6.TabIndex = 7;
@@ -198,7 +203,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(56, 184);
+            this.label5.Location = new System.Drawing.Point(8, 178);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(75, 13);
             this.label5.TabIndex = 6;
@@ -206,10 +211,10 @@
             // 
             // TMLPLearningRate
             // 
-            this.TMLPLearningRate.Location = new System.Drawing.Point(137, 155);
+            this.TMLPLearningRate.Location = new System.Drawing.Point(89, 149);
             this.TMLPLearningRate.Name = "TMLPLearningRate";
             this.TMLPLearningRate.Size = new System.Drawing.Size(46, 20);
-            this.TMLPLearningRate.TabIndex = 5;
+            this.TMLPLearningRate.TabIndex = 2;
             this.TMLPLearningRate.Validated += new System.EventHandler(this.TMLPLearningRate_Validated);
             // 
             // DCostFunctionMLP
@@ -218,17 +223,17 @@
             this.DCostFunctionMLP.Items.AddRange(new object[] {
             "MeanSquare",
             "CrossEntropy"});
-            this.DCostFunctionMLP.Location = new System.Drawing.Point(137, 181);
+            this.DCostFunctionMLP.Location = new System.Drawing.Point(89, 175);
             this.DCostFunctionMLP.Name = "DCostFunctionMLP";
             this.DCostFunctionMLP.Size = new System.Drawing.Size(121, 21);
-            this.DCostFunctionMLP.TabIndex = 4;
+            this.DCostFunctionMLP.TabIndex = 3;
             // 
             // BEditMLPDone
             // 
-            this.BEditMLPDone.Location = new System.Drawing.Point(324, 262);
+            this.BEditMLPDone.Location = new System.Drawing.Point(434, 240);
             this.BEditMLPDone.Name = "BEditMLPDone";
-            this.BEditMLPDone.Size = new System.Drawing.Size(75, 23);
-            this.BEditMLPDone.TabIndex = 3;
+            this.BEditMLPDone.Size = new System.Drawing.Size(108, 56);
+            this.BEditMLPDone.TabIndex = 4;
             this.BEditMLPDone.Text = "Done";
             this.BEditMLPDone.UseVisualStyleBackColor = true;
             this.BEditMLPDone.Click += new System.EventHandler(this.BEditMLPDone_Click);
@@ -242,7 +247,7 @@
             // 
             // NAddLayerPos
             // 
-            this.NAddLayerPos.Location = new System.Drawing.Point(137, 221);
+            this.NAddLayerPos.Location = new System.Drawing.Point(137, 76);
             this.NAddLayerPos.Name = "NAddLayerPos";
             this.NAddLayerPos.Size = new System.Drawing.Size(36, 20);
             this.NAddLayerPos.TabIndex = 1;
@@ -250,7 +255,7 @@
             // 
             // BAddLayer
             // 
-            this.BAddLayer.Location = new System.Drawing.Point(8, 216);
+            this.BAddLayer.Location = new System.Drawing.Point(8, 74);
             this.BAddLayer.Name = "BAddLayer";
             this.BAddLayer.Size = new System.Drawing.Size(123, 25);
             this.BAddLayer.TabIndex = 0;
@@ -276,6 +281,7 @@
             this.LayerEditor.TabIndex = 3;
             this.LayerEditor.Text = "LayerEditor";
             this.LayerEditor.UseVisualStyleBackColor = true;
+            this.LayerEditor.Enter += new System.EventHandler(this.LayerEditor_Enter);
             // 
             // CBRegularizationMode
             // 
@@ -283,10 +289,10 @@
             this.CBRegularizationMode.Items.AddRange(new object[] {
             "None",
             "L2"});
-            this.CBRegularizationMode.Location = new System.Drawing.Point(116, 101);
+            this.CBRegularizationMode.Location = new System.Drawing.Point(115, 101);
             this.CBRegularizationMode.Name = "CBRegularizationMode";
             this.CBRegularizationMode.Size = new System.Drawing.Size(121, 21);
-            this.CBRegularizationMode.TabIndex = 9;
+            this.CBRegularizationMode.TabIndex = 4;
             this.CBRegularizationMode.SelectedIndexChanged += new System.EventHandler(this.CBRegularizationMode_SelectedIndexChanged);
             this.CBRegularizationMode.Validated += new System.EventHandler(this.CBRegularizationMode_Validated);
             // 
@@ -295,7 +301,7 @@
             this.BDoneLayerEdit.Location = new System.Drawing.Point(357, 136);
             this.BDoneLayerEdit.Name = "BDoneLayerEdit";
             this.BDoneLayerEdit.Size = new System.Drawing.Size(75, 23);
-            this.BDoneLayerEdit.TabIndex = 8;
+            this.BDoneLayerEdit.TabIndex = 5;
             this.BDoneLayerEdit.Text = "Done";
             this.BDoneLayerEdit.UseVisualStyleBackColor = true;
             this.BDoneLayerEdit.Click += new System.EventHandler(this.BDoneLayerEdit_Click);
@@ -308,9 +314,19 @@
             0,
             0,
             0});
+            this.NLayerInputDim.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.NLayerInputDim.Name = "NLayerInputDim";
             this.NLayerInputDim.Size = new System.Drawing.Size(51, 20);
-            this.NLayerInputDim.TabIndex = 7;
+            this.NLayerInputDim.TabIndex = 1;
+            this.NLayerInputDim.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.NLayerInputDim.ValueChanged += new System.EventHandler(this.NLayerInputDim_ValueChanged);
             // 
             // NLayerOutputDim
@@ -321,9 +337,19 @@
             0,
             0,
             0});
+            this.NLayerOutputDim.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.NLayerOutputDim.Name = "NLayerOutputDim";
             this.NLayerOutputDim.Size = new System.Drawing.Size(51, 20);
-            this.NLayerOutputDim.TabIndex = 6;
+            this.NLayerOutputDim.TabIndex = 2;
+            this.NLayerOutputDim.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.NLayerOutputDim.ValueChanged += new System.EventHandler(this.NLayerOutputDim_ValueChanged);
             // 
             // DActivationFunction
@@ -337,7 +363,7 @@
             this.DActivationFunction.Location = new System.Drawing.Point(115, 74);
             this.DActivationFunction.Name = "DActivationFunction";
             this.DActivationFunction.Size = new System.Drawing.Size(121, 21);
-            this.DActivationFunction.TabIndex = 5;
+            this.DActivationFunction.TabIndex = 3;
             this.DActivationFunction.SelectedIndexChanged += new System.EventHandler(this.DActivationFunction_SelectedIndexChanged);
             this.DActivationFunction.Validating += new System.ComponentModel.CancelEventHandler(this.DActivationFunction_Validation);
             // 
@@ -379,6 +405,8 @@
             // 
             // PTrainNet
             // 
+            this.PTrainNet.Controls.Add(this.label8);
+            this.PTrainNet.Controls.Add(this.label7);
             this.PTrainNet.Controls.Add(this.BBack_Train);
             this.PTrainNet.Controls.Add(this.BStartLearn);
             this.PTrainNet.Controls.Add(this.SBatchSize);
@@ -396,6 +424,24 @@
             this.PTrainNet.TabIndex = 4;
             this.PTrainNet.Text = "TrainNet";
             this.PTrainNet.UseVisualStyleBackColor = true;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(332, 11);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(61, 13);
+            this.label8.TabIndex = 11;
+            this.label8.Text = "Testing Set";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(102, 11);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(64, 13);
+            this.label7.TabIndex = 10;
+            this.label7.Text = "Training Set";
             // 
             // BBack_Train
             // 
@@ -496,21 +542,34 @@
             this.LEpochs.TabIndex = 0;
             this.LEpochs.Text = "Number of Epochs";
             // 
-            // BEditNet
+            // PPreview
             // 
-            this.BEditNet.Location = new System.Drawing.Point(143, 6);
-            this.BEditNet.Name = "BEditNet";
-            this.BEditNet.Size = new System.Drawing.Size(116, 88);
-            this.BEditNet.TabIndex = 2;
-            this.BEditNet.Text = "Edit";
-            this.BEditNet.UseVisualStyleBackColor = true;
-            this.BEditNet.Click += new System.EventHandler(this.BEditNet_Click);
+            this.PPreview.ColumnCount = 3;
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 163F));
+            this.PPreview.Location = new System.Drawing.Point(4, 420);
+            this.PPreview.Name = "PPreview";
+            this.PPreview.RowCount = 3;
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.PPreview.Size = new System.Drawing.Size(496, 59);
+            this.PPreview.TabIndex = 0;
+            // 
+            // PPreviewEdit
+            // 
+            this.PPreviewEdit.Location = new System.Drawing.Point(500, 420);
+            this.PPreviewEdit.Name = "PPreviewEdit";
+            this.PPreviewEdit.Size = new System.Drawing.Size(54, 59);
+            this.PPreviewEdit.TabIndex = 3;
             // 
             // NetDesigner
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(558, 480);
+            this.Controls.Add(this.PPreviewEdit);
             this.Controls.Add(this.PPreview);
             this.Controls.Add(this.hiddenTabControl1);
             this.Name = "NetDesigner";
@@ -563,7 +622,6 @@
         private Slider SBatchSize;
         private System.Windows.Forms.Button BStartLearn;
         private System.Windows.Forms.Button BBack_Train;
-        private System.Windows.Forms.Panel PPreview;
         private System.Windows.Forms.FlowLayoutPanel PNetSummary;
         private System.Windows.Forms.ComboBox CBRegularizationMode;
         private System.Windows.Forms.Button BEditMLPDone;
@@ -572,6 +630,10 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button BEditNet;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TableLayoutPanel PPreview;
+        private System.Windows.Forms.Panel PPreviewEdit;
     }
 }
 

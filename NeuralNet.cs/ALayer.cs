@@ -34,15 +34,46 @@ namespace NeuralNetModel
                 inputDimension = value;
             }
         }
-        public IActivationFunction ActFunc
+        private ActivationFunction _activationFunction;
+        public ActivationFunction ActivationFunction
         {
-            get;
-            protected set;
+            get
+            {
+                return _activationFunction;
+            }
+            protected set
+            {
+                _activationFunction = value;
+
+            }
         }
         public RegularizationMode RegMode
         {
             get;
             protected set;
+        }
+
+        protected IActivationFunction ActFunc;
+
+        protected virtual void SetActivationFunction(ActivationFunction a)
+        {
+            switch (a)
+            {
+                case ActivationFunction.Sigmoid:
+                    ActFunc = new Sigmoid();
+                    break;
+                case ActivationFunction.ReLU:
+                    ActFunc = new RectiLinear();
+                    break;
+                case ActivationFunction.SoftPlus:
+                    ActFunc = new SoftPlus();
+                    break;
+                case ActivationFunction.Identity:
+                    ActFunc = new Identity();
+                    break;
+                default:
+                    throw new NNException("No available implementation for activation funciton: " + a.ToString());
+            }
         }
 
         internal abstract Vector<double> Process(Vector<double> input);

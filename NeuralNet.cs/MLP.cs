@@ -13,12 +13,12 @@ namespace NeuralNetModel
         #region Constructor
         public MLP()
         {
+            SetParameters(1, CostFunction.MeanSquare);
             Layers = new List<ALayer>();
         }
         #endregion
 
         #region Public Methods
-
         /// <summary>
         /// Performs SGD on a set of training data using a mini-batch size provided.
         /// </summary>
