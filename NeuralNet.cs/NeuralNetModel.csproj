@@ -56,10 +56,11 @@
     <Compile Include="ICostFunction.cs" />
     <Compile Include="IMenu.cs" />
     <Compile Include="Layer.cs" />
-    <Compile Include="MenuController.cs" />
+    <Compile Include="MenuModel.cs" />
     <Compile Include="MeanSquare.cs" />
     <Compile Include="MLP.cs" />
     <Compile Include="NNException.cs" />
+    <Compile Include="PoolingLayer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sigmoid.cs" />

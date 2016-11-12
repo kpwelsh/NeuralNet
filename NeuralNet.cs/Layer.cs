@@ -92,5 +92,10 @@ namespace NeuralNetModel
             WeightErrorCache.Clear();
             Biases.Clear();
         }
+
+        internal override double WeightMagnitude()
+        {
+            return Weights.L1Norm() / (OutputDimension * InputDimension);
+        }
     }
 }

@@ -10,14 +10,9 @@ namespace NeuralNetModel
 {
     class FullyConnectedRNN : ANet
     {
-        private ALayer HiddenLayer;
-        private ALayer OutputLayer;
-        private List<Vector<double>> HiddenCache;
-        private List<Vector<double>> OutputCache;
+        private List<List<Vector<double>>> OutputCache;
         private int MaxMemory;
         private double TimeStep;
-        private int HiddenDimension;
-        private int OutputDimension;
         private bool ForceOutput = false;
         private Vector<double> PreviousResponse;
 
@@ -26,23 +21,11 @@ namespace NeuralNetModel
         {
             MaxMemory = memory;
             TimeStep = timeStep;
-
-            HiddenCache = new List<Vector<double>>();
-            OutputCache = new List<Vector<double>>();
+            
+            OutputCache = new List<List<Vector<double>>>();
+            Layers = new List<ALayer>();
         }
-
-        internal void SetHiddenLayer(ALayer layer)
-        {
-            HiddenLayer = layer;
-            HiddenDimension = layer.OutputDimension;
-        }
-
-        internal void SetOutputLayer(ALayer layer)
-        {
-            OutputLayer = layer;
-            OutputDimension = layer.OutputDimension;
-        }
-
+        
         internal void SetParameters(double? learningRate = null, CostFunction? costFunc = null, bool? forceOutput = null)
         {
             if (costFunc != null)
@@ -65,17 +48,25 @@ namespace NeuralNetModel
 
         internal void WipeMemory()
         {
-            HiddenCache.Clear();
             OutputCache.Clear();
-            HiddenCache.Add(new DenseVector(HiddenDimension));
-            OutputCache.Add(new DenseVector(OutputDimension));
+            List<Vector<double>> zeros = new List<Vector<double>>();
+
+            // Add a zero for the input for the first iteration of the first layer.
+            if (Layers[0].InputDimension <= Layers[0].OutputDimension) 
+                zeros.Add(null);
+            else
+                zeros.Add(new DenseVector(Layers.First().InputDimension - Layers.First().OutputDimension));
+
+            foreach (ALayer layer in Layers)
+                zeros.Add(new DenseVector(layer.OutputDimension));
+            OutputCache.Add(zeros);
         }
 
         internal override void Learn(HashSet<TrainingData> trainSet,int batchSize = 1)
         {
-            int count = 0;
             Vector<double> output;
             double cost = 0;
+            int nBatch = 0;
             foreach(TrainingData trainSeq in trainSet)
             {
                 // Start over for each different training sequence provided.
@@ -87,22 +78,21 @@ namespace NeuralNetModel
                     // Process the pair
                     TrainingData.TrainingPair pair = trainSeq[i];
                     output = Process(pair.Data);
-
+                    cost += CostFunc.Of(trainSeq[i].Response, output) / (batchSize * MaxMemory);
                     // If we have completely overwriten our short term memory, then 
                     // update the weights based on how we performed this time.
-                    count++;
-                    if (count % MaxMemory == 0)
+                    if (i > 0 && i % MaxMemory == 0)
                     {
-                        PropogateError(trainSeq.SubSequence(Math.Min(i - MaxMemory + 1, 0), i + 1), batchSize);
+                        PropogateError(trainSeq.SubSequence(Math.Min(i - MaxMemory, 0), i), batchSize);
                     }
                     // Count batches by number of error propogations
-                    if (count % (batchSize * MaxMemory) == 0)
+                    if (i % (batchSize * MaxMemory) == 0)
                     {
-                        BatchLevelPP?.Invoke(cost);
+                        nBatch++;
+                        Hook?.Invoke(nBatch, this);
                         ApplyError();
                         cost = 0;
                     }
-                    cost += CostFunc.Of(trainSeq[i].Response, output) / (batchSize * MaxMemory);
 
                     // Keep the last... uhh. this is a PIPI (Parallel Implementation Prone to Inconsistency)
                     // See this.Process
@@ -129,19 +119,31 @@ namespace NeuralNetModel
         internal override Vector<double> Process(Vector<double> input)
         {
             Vector<double> fullInput;
-            if (ForceOutput && PreviousResponse != null)
-                fullInput = Concatenate(HiddenLayer.InputDimension, HiddenCache.Last(), PreviousResponse, input);
-            else
-                fullInput = Concatenate(HiddenLayer.InputDimension, HiddenCache.Last(), OutputCache.Last(), input);
+            List<Vector<double>> nextOutputCache = new List<Vector<double>>();
 
-            HiddenCache.Add(HiddenLayer.Process(fullInput));
-            OutputCache.Add(OutputLayer.Process(HiddenCache.Last()));
-            if (OutputCache.Count > MaxMemory)
+            nextOutputCache.Add(input);
+            for (var i = 0; i < Layers.Count; i++)
             {
-                HiddenCache.RemoveAt(0);
+                // First, get the real full input to the current layer. fullInput = <Last Layer State> + <Previous Layer Output (Can be null for ESMs)>
+                // The output cache is structured as follows: [Training Input, Layer 0 output, Layer 1 output ... Last layer Output]
+                // The output of layer i is in OutputCache[i + 1] 
+                if (ForceOutput && PreviousResponse != null)
+                    fullInput = Concatenate(Layers[i].InputDimension, OutputCache.Last()[i + 1], nextOutputCache[i]);
+                else
+                    fullInput = Concatenate(Layers[i].InputDimension, OutputCache.Last()[i + 1], nextOutputCache[i]);
+
+                input = Layers[i].Process(fullInput);
+                nextOutputCache.Add(input);
+            }
+            
+            OutputCache.Add(nextOutputCache);
+            // Keep 1 more layer of memory than really, so we can use it for input overriding.
+            // The max memory is really how far back you can back prop.
+            if (OutputCache.Count > MaxMemory + 1)
+            {
                 OutputCache.RemoveAt(0);
             }
-            return OutputCache.Last();
+            return OutputCache.Last().Last();
         }
 
         internal double TestOne(TrainingData ts)
@@ -162,33 +164,43 @@ namespace NeuralNetModel
         #region Private Methods
         private void PropogateError(TrainingData ts,int batchSize)
         {
-            Vector<double> outputError = new DenseVector(OutputDimension);
-            Vector<double> hiddenError = new DenseVector(HiddenDimension);
-            Vector<double> jointError;
-            Vector<double> jointInput;
-            for(var i = OutputCache.Count - 1; i >= 0; i--)
+            // Initialize the error from the future
+            List<Vector<double>> futureErrorCache = new List<Vector<double>>();
+            for (var i = 0; i < Layers.Count; i++)
+                futureErrorCache.Add(new DenseVector(Layers[i].OutputDimension)); // Only store the error relevant to that layer
+
+            // Step backwards through the memory
+            for(var t = OutputCache.Count - 1; t > 0; t--)
             {
-                // Add the error on the output layer from the training data.
-                outputError += CostFunc.Derivative(ts[i].Response, OutputCache[i]);
+                // Error on the output layer from the training data
+                Vector<double> error = CostFunc.Derivative(ts[t - 1].Response, OutputCache[t].Last());
+                // Step backwards through the net.
+                for(var i = Layers.Count - 1; i >= 0; i--)
+                {
+                    error += futureErrorCache[i];
+                    Vector<double> lastInput = Concatenate(Layers[i].InputDimension, OutputCache[t - 1][i + 1], OutputCache[t][i]);// [t-1][i+1] is the output of the current layer at a previous time
+                    Vector<double> jointInputError = Layers[i].PropogateError(error, LearningRate/batchSize, lastInput);
+                    Vector<double> pastStateError;
 
-                // Add the error on the hidden layer from the output layer.
-                hiddenError += OutputLayer.PropogateError(outputError, LearningRate/batchSize, HiddenCache[i]);
-
-                if (i == 0)
-                    break;
-                // Get the input that went into the hidden layer at this time step.
-                jointInput = Concatenate(HiddenLayer.InputDimension, HiddenCache[i - 1], OutputCache[i - 1], ts[i - 1].Data);
-                jointError = HiddenLayer.PropogateError(hiddenError, LearningRate/batchSize, jointInput);
-                Split(jointError, HiddenDimension, out hiddenError, out outputError, OutputDimension);
+                    // If this is the first layer, error would be the error on the training input, so we can just ignore it.
+                    Split(jointInputError, Layers[i].OutputDimension, out pastStateError, out error, OutputCache[t][i]?.Count ?? 1);
+                    futureErrorCache[i] = pastStateError; // Store the most recent error from the future.
+                }
             }
         }
 
         private void ApplyError()
         {
-            HiddenLayer.ApplyUpdate();
-            OutputLayer.ApplyUpdate();
+            foreach (ALayer l in Layers)
+                l.ApplyUpdate();
         }
 
+        /// <summary>
+        /// Combines Vectors until the max size has been hit.
+        /// </summary>
+        /// <param name="catSize"></param>
+        /// <param name="vectors"></param>
+        /// <returns></returns>
         private Vector<double> Concatenate(int catSize, params Vector<double>[]  vectors)
         {
             Vector<double> cat = new DenseVector(catSize);
@@ -213,6 +225,14 @@ namespace NeuralNetModel
             return cat;
         }
 
+        /// <summary>
+        /// Splits a vector into two pieceso of variable size.
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="n"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <param name="v2Size"></param>
         private void Split(Vector<double> v, int n, out Vector<double> v1, out Vector<double> v2, int? v2Size = null)
         {
             v1 = new DenseVector(n);

@@ -14,6 +14,7 @@ namespace NNDesignerUI
     public partial class NetDesigner : Form
     {
         private Stack<TabPage> PageStack;
+        private SystemHealthMonitor monitor;
 
         public NetDesigner()
         {
@@ -55,7 +56,7 @@ namespace NNDesignerUI
 
         private void ShowLayerSummary(int index)
         {
-            ALayer layer = MenuController.CurrentNet[index];
+            ALayer layer = MenuModel.CurrentNet[index];
 
             // Set up the edit button.
             Button edit = new Button();
@@ -64,7 +65,7 @@ namespace NNDesignerUI
             edit.MouseClick +=
                 (object s, MouseEventArgs e) =>
             {
-                MenuController.SetLayer(layer);
+                MenuModel.SetLayer(layer);
                 SwitchToPage(LayerEditor);
             };
             edit.Dock = DockStyle.Fill;
@@ -76,6 +77,17 @@ namespace NNDesignerUI
                 PPreview.Controls.Add(new Label() { Text = $"Output Dimension: {locL.OutputDimension}", AutoSize = true }, 1, 0);
                 PPreview.Controls.Add(new Label() { Text = $"Activation Function: {locL.ActivationFunction.ToString()}", AutoSize = true }, 0, 1);
                 PPreview.Controls.Add(new Label() { Text = $"Regularization Mode: {locL.RegMode.ToString()}", AutoSize = true }, 1, 1);
+            }
+        }
+
+        private void InitMonitorWindow()
+        {
+            if(monitor == null)
+            {
+                MLPSystemHealth m = new MLPSystemHealth();
+                m.Show();
+                monitor = m;
+                monitor.AttachToModel();
             }
         }
         #endregion
@@ -93,7 +105,7 @@ namespace NNDesignerUI
 
         private void BEditNet_Click(object sender, EventArgs e)
         {
-            if (MenuController.CurrentNet is MLP)
+            if (MenuModel.CurrentNet is MLP)
                 SwitchToPage(EditMLP);
         }
         #endregion
@@ -101,9 +113,9 @@ namespace NNDesignerUI
         #region Net Type Selection
         private void BBuildMLP_Click(object sender, EventArgs e)
         {
-            MenuController.NewMLP();
+            MenuModel.NewMLP();
             SwitchToPage(EditMLP);
-            NAddLayerPos.Value = MenuController.NumberOfLayers();
+            NAddLayerPos.Value = MenuModel.NumberOfLayers();
         }
         #endregion
 
@@ -112,7 +124,7 @@ namespace NNDesignerUI
         {
             DCostFunctionMLP.DataSource = Enum.GetValues(typeof(CostFunction));
             // Set default options up.
-            MLP net = MenuController.CurrentNet as MLP;
+            MLP net = MenuModel.CurrentNet as MLP;
             TMLPLearningRate.Text = net.LearningRate.ToString();
             DCostFunctionMLP.SelectedItem = net.CostFunction.ToString();
             NAddLayerPos.Value = net.Count;
@@ -120,7 +132,7 @@ namespace NNDesignerUI
             // Populate Summary
             PNetSummary.Controls.Clear();
 
-            List<ALayer> layers = MenuController.GetLayers();
+            List<ALayer> layers = MenuModel.GetLayers();
             for (var i = 0; i < layers.Count; i++)
             {
                 Button b = new Button();
@@ -151,19 +163,19 @@ namespace NNDesignerUI
 
         private void BAddLayer_Click(object sender, EventArgs e)
         {
-            MenuController.SetLayer();
+            MenuModel.SetLayer();
             int index = (int)NAddLayerPos.Value;
             if (index > 0)
-                NLayerInputDim.Value = MenuController.CurrentNet[index - 1].OutputDimension;
-            if (index < MenuController.CurrentNet.Count)
-                NLayerOutputDim.Value = MenuController.CurrentNet[index].InputDimension;
+                NLayerInputDim.Value = MenuModel.CurrentNet[index - 1].OutputDimension;
+            if (index < MenuModel.CurrentNet.Count)
+                NLayerOutputDim.Value = MenuModel.CurrentNet[index].InputDimension;
             SwitchToPage(LayerEditor);
         }
 
         private void NAddLayerPos_ValueChanged(object sender, EventArgs e)
         {
             int val = (int)NAddLayerPos.Value;
-            NAddLayerPos.Value = Math.Min(Math.Max(val, 0), MenuController.NumberOfLayers());
+            NAddLayerPos.Value = Math.Min(Math.Max(val, 0), MenuModel.NumberOfLayers());
         }
 
         private void TMLPLearningRate_Validated(object sender, EventArgs e)
@@ -175,7 +187,7 @@ namespace NNDesignerUI
 
         private void BEditMLPDone_Click(object sender, EventArgs e)
         {
-            MenuController.SetNetParam(
+            MenuModel.SetNetParam(
                 learningRate: double.Parse(TMLPLearningRate.Text), 
                 costFunc: (CostFunction)DCostFunctionMLP.SelectedItem
                 );
@@ -192,17 +204,17 @@ namespace NNDesignerUI
 
         private void NLayerOutputDim_ValueChanged(object sender, EventArgs e)
         {
-            MenuController.SetLayerParam(outputDim: (int)NLayerOutputDim.Value);
+            MenuModel.SetLayerParam(outputDim: (int)NLayerOutputDim.Value);
         }
 
         private void NLayerInputDim_ValueChanged(object sender, EventArgs e)
         {
-            MenuController.SetLayerParam(outputDim: (int)NLayerInputDim.Value);
+            MenuModel.SetLayerParam(outputDim: (int)NLayerInputDim.Value);
         }
       
         private void CBRegularizationMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            MenuController.SetLayerParam(regMode: (RegularizationMode)CBRegularizationMode.SelectedItem);
+            MenuModel.SetLayerParam(regMode: (RegularizationMode)CBRegularizationMode.SelectedItem);
         }
 
         private void CBRegularizationMode_Validated(object sender, EventArgs e)
@@ -211,7 +223,7 @@ namespace NNDesignerUI
 
         private void DActivationFunction_SelectedIndexChanged(object sender, EventArgs e)
         {
-            MenuController.SetLayerParam(actFunc: (ActivationFunction)DActivationFunction.SelectedItem);
+            MenuModel.SetLayerParam(actFunc: (ActivationFunction)DActivationFunction.SelectedItem);
         }
 
         private void DActivationFunction_Validation(object sender, CancelEventArgs e)
@@ -220,11 +232,11 @@ namespace NNDesignerUI
         
         private void BDoneLayerEdit_Click(object sender, EventArgs e)
         {
-            MenuController.SetLayerParam((int)NLayerInputDim.Value,
+            MenuModel.SetLayerParam((int)NLayerInputDim.Value,
                 (int)NLayerOutputDim.Value,
                 (ActivationFunction)DActivationFunction.SelectedItem,
                 (RegularizationMode)CBRegularizationMode.SelectedItem);
-            MenuController.InsertLayer((int)NAddLayerPos.Value);
+            MenuModel.InsertLayer((int)NAddLayerPos.Value);
             Back();
         }
         #endregion
@@ -239,7 +251,7 @@ namespace NNDesignerUI
         {
             OpenFileDialog.ShowDialog();
             string name = OpenFileDialog.FileName.Split('\\').Last();
-            MenuController.LoadTestSet(name, OpenFileDialog.FileName);
+            MenuModel.LoadTestSet(name, OpenFileDialog.FileName);
             LBLoadedTest.Items.Add(name);
         }
 
@@ -247,16 +259,26 @@ namespace NNDesignerUI
         {
             OpenFileDialog.ShowDialog();
             string name = OpenFileDialog.FileName.Split('\\').Last();
-            MenuController.LoadTrainingSet(name, OpenFileDialog.FileName);
+            MenuModel.LoadTrainingSet(name, OpenFileDialog.FileName);
             LBLoadedTrain.Items.Add(name);
         }
 
-        private void BStartLearn_Click(object sender, EventArgs e)
+        async private void BStartLearn_Click(object sender, EventArgs e)
         {
             try
             {
-                MenuController.AddEpochPP(EpochPP);
-                MenuController.TrainNet((string)LBLoadedTrain.SelectedItem, (string)LBLoadedTest.SelectedItem, SNEpochs.Value, SBatchSize.Value);
+                InitMonitorWindow();
+                // Multi-threading has special considerations... #LateBinding
+                string trainName = (string)LBLoadedTrain.SelectedItem;
+                string testName = (string)LBLoadedTest.SelectedItem;
+                int nEpochs = SNEpochs.Value;
+                int batchSize = SBatchSize.Value;
+                MenuModel.SelectTest(testName);
+                MenuModel.SelectTrain(trainName);
+                await Task.Run(
+                    () =>
+                    MenuModel.TrainNet(nEpochs, batchSize)
+                    );
             }
             catch (Exception ex)
             {

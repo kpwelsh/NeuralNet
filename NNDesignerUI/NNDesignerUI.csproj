@@ -36,6 +36,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,11 +48,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataMonitor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DataMonitor.Designer.cs">
+      <DependentUpon>DataMonitor.cs</DependentUpon>
+    </Compile>
     <Compile Include="HiddenTabControl.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="HiddenTabControl.Designer.cs">
       <DependentUpon>HiddenTabControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MLPSystemHealth.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MLPSystemHealth.Designer.cs">
+      <DependentUpon>MLPSystemHealth.cs</DependentUpon>
     </Compile>
     <Compile Include="NetDesigner.cs">
       <SubType>Form</SubType>
@@ -67,8 +80,15 @@
     <Compile Include="Slider.Designer.cs">
       <DependentUpon>Slider.cs</DependentUpon>
     </Compile>
+    <Compile Include="SystemHealthMonitor.cs" />
+    <EmbeddedResource Include="DataMonitor.resx">
+      <DependentUpon>DataMonitor.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="HiddenTabControl.resx">
       <DependentUpon>HiddenTabControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MLPSystemHealth.resx">
+      <DependentUpon>MLPSystemHealth.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="NetDesigner.resx">
       <DependentUpon>NetDesigner.cs</DependentUpon>

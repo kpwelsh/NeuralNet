@@ -7,18 +7,20 @@ using System.IO;
 
 namespace NeuralNetModel
 {
-    public static class MenuController
+    public static class MenuModel 
     {
-        public delegate void ProgrammingPoint(params double[] vals);
-
-        private static ProgrammingPoint EpochLevelPP;
-        private static ProgrammingPoint BatchLevelPP;
+        public delegate void UpdateCallback(int x, params double[] c);
+        public static ANet.TrainingHook Hooks;
+        public static int TestSampleFreq = 1;
+        public static int GenericSampleFreq = 1;
 
         public static ANet CurrentNet;
         public static ALayer CurrentLayer;
 
         static Dictionary<string, HashSet<TrainingData>> CachedTrainingSets = new Dictionary<string, HashSet<TrainingData>>();
         static Dictionary<string, HashSet<TrainingData>> CachedTestSets = new Dictionary<string, HashSet<TrainingData>>();
+        static HashSet<TrainingData> SelectedTrain;
+        static HashSet<TrainingData> SelectedTest;
 
         #region Instantiate Things
         // Nets
@@ -105,37 +107,98 @@ namespace NeuralNetModel
             return ex is ArgumentException || ex is ArgumentNullException ||
                 ex is FileNotFoundException || ex is DirectoryNotFoundException || ex is IOException;
         }
+
+        public static void SelectTrain(string name)
+        {
+            try
+            {
+                SelectedTrain = CachedTrainingSets[name];
+            }
+            catch
+            {
+                throw new NNException($"Cannot select training set with name {name}");
+            }
+        }
+
+        public static void SelectTest(string name)
+        {
+            try
+            {
+                SelectedTest = CachedTestSets[name];
+            }
+            catch
+            {
+                throw new NNException($"Cannot select testing set with name {name}");
+            }
+        }
         #endregion
 
-        public static void AddEpochPP(ProgrammingPoint pp)
+        #region Logging and Hooks
+        public static void AddWeightMonitor(UpdateCallback hook)
         {
-            if (EpochLevelPP == null)
-                EpochLevelPP = pp;
-            else if (!EpochLevelPP.GetInvocationList().Contains(pp))
-                EpochLevelPP += pp;
+            if (CurrentNet == null)
+                return;
+            if(!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            {
+                CurrentNet.Hook += (int x, ANet self) =>
+                {
+                    if(x % GenericSampleFreq == 0)
+                    {
+                        double[] w = new double[CurrentNet.Count];
+                        for(var i = 0; i < CurrentNet.Count; i++)
+                        {
+                            w[i] = CurrentNet[i].WeightMagnitude();
+                        }
+                        hook(GenericSampleFreq, w);
+                    }
+                };
+            }
         }
 
-        public static void AddBatchLevelPP(ProgrammingPoint pp)
+        public static void AddCostMonitor(UpdateCallback hook)
         {
-            if (BatchLevelPP == null)
-                BatchLevelPP = pp;
-            else if (!BatchLevelPP.GetInvocationList().Contains(pp))
-                BatchLevelPP += pp;
+            if (CurrentNet == null)
+                return;
+            if (!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            {
+                CurrentNet.Hook += (int x, ANet self) =>
+                {
+                    hook(1, self.LastCost);
+                };
+            }
         }
+
+        public static void AddTestMonitor(UpdateCallback hook)
+        {
+            if (CurrentNet == null)
+                return;
+            if (!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            {
+                CurrentNet.Hook += (int x, ANet self) =>
+                {
+                    if(x % TestSampleFreq == 0)
+                    {
+                        hook(TestSampleFreq, self.Test(SelectedTest));
+                    }
+                };
+            }
+        }
+
+        public static void RemoveHooks()
+        {
+            CurrentNet.Hook = null;
+        }
+        #endregion
 
         #region Train
-        public static void TrainNet(string trainSet, string testSet, int nEpochs, int batchSize)
+        public static void TrainNet(int nEpochs, int batchSize)
         {
             if (CurrentNet == null)
                 throw new NNException("Error: Network is undefined.\nPlease load or create a network.");
-            CurrentNet.AddBatchLevelPP(BatchLevelPP);
-            HashSet<TrainingData> train = CachedTrainingSets[trainSet];
-            HashSet<TrainingData> test = CachedTestSets[testSet];
             for (var i = 0; i < nEpochs; i++)
             {
-                CurrentNet.Learn(train, batchSize);
-                double error = CurrentNet.Test(test);
-                EpochLevelPP?.Invoke(error);
+                CurrentNet.Learn(SelectedTrain, batchSize);
+                double error = CurrentNet.Test(SelectedTrain);
             }
         }
         #endregion

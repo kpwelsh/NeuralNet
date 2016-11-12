@@ -211,6 +211,16 @@ namespace NeuralNetModel
 
             return res;
         }
+
+        internal override double WeightMagnitude()
+        {
+            double mag = 0;
+            for(var i = 0; i < Weights.Length; i++)
+            {
+                mag += Weights[i].L1Norm() / (Weights[i].RowCount * Weights[i].ColumnCount);
+            }
+            return mag / Weights.Length;
+        }
         #endregion
     }
 }

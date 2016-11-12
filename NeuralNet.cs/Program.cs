@@ -76,7 +76,7 @@ namespace NeuralNetModel
 
         static void Main(string[] args)
         {
-            TrainFeedForward();
+            TrainRNN();
         }
 
         static void AddToCosts(params double[] vals)
@@ -89,22 +89,21 @@ namespace NeuralNetModel
         {
             HashSet<TrainingData> training;
             //HashSet<TrainingData> test;
-            LoadSinSeq(out training, 0.25, 3000, 2);
+            LoadSinSeq(out training, 0.1, 3000, 2);
             //LoadSinSeq(out test, 0.25, 300, 1000);
             int size = 20;
 
-            FullyConnectedRNN net = new FullyConnectedRNN(0.01, 5);
-            net.SetParameters(0.001, CostFunction.MeanSquare, true);
-            net.SetHiddenLayer(new Layer(size + 1, size, ActivationFunction.Sigmoid, RegularizationMode.None));
-            net.SetOutputLayer(new Layer(size, 1, ActivationFunction.Identity, RegularizationMode.None));
-
-            net.AddBatchLevelPP(AddToCosts);
+            FullyConnectedRNN net = new FullyConnectedRNN(0.01, 10);
+            net.SetParameters(0.0001, CostFunction.MeanSquare, true);
+            net.Add(new Layer(size, size, ActivationFunction.Sigmoid, RegularizationMode.None));
+            net.Add(new Layer(size + 1, 1, ActivationFunction.Identity, RegularizationMode.None));
+            
             int epochs = 1;
             do
             {
                 for (var i = 0; i < epochs; i++)
                 {
-                    net.Learn(training, 1);
+                    net.Learn(training, 10);
                     Console.WriteLine("---------------------------------------");
                     Console.WriteLine($"Last Cost: {Costs.Last()}");
                     Console.WriteLine(string.Format("Error on test set: {0}", net.Test(training)));
@@ -118,18 +117,19 @@ namespace NeuralNetModel
         static void TrainFeedForward()
         {
 
-            MenuController.LoadTrainingSet("mnist_train", "smallMnist_train.csv");
-            MenuController.LoadTestSet("mnist_test", "newMnist_test.csv");
+            MenuModel.LoadTrainingSet("mnist_train", "smallMnist_train.csv");
+            MenuModel.LoadTestSet("mnist_test", "newMnist_test.csv");
 
             MLP net = new MLP();
             net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
             net.Add(new Layer(784, 30, ActivationFunction.Sigmoid));
             net.Add(new Layer(30, 10, ActivationFunction.Sigmoid));
 
-            MenuController.CurrentNet = net;
-            MenuController.AddEpochPP(PrintToScreen);
+            MenuModel.CurrentNet = net;
 
-            MenuController.TrainNet("mnist_train", "mnist_test", 2, 100);
+            MenuModel.SelectTest("mnist_test");
+            MenuModel.SelectTrain("mnist_train");
+            MenuModel.TrainNet(2, 100);
         }
 
         private static void PrintToScreen(params double[] vals)

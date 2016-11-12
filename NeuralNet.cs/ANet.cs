@@ -9,6 +9,9 @@ namespace NeuralNetModel
 {
     public abstract class ANet
     {
+        public delegate void TrainingHook(int batchNumber, ANet self = null);
+        public TrainingHook Hook;
+
         #region Properties
         public ALayer this[int n]
         {
@@ -43,22 +46,19 @@ namespace NeuralNetModel
             get;
             protected set;
         }
+        public double LastCost
+        {
+            get;
+            protected set;
+        }
         #endregion
 
         #region Protected Fields
         protected ICostFunction CostFunc;
         protected List<ALayer> Layers;
-        protected MenuController.ProgrammingPoint BatchLevelPP;
         #endregion
 
         #region Public
-        internal void AddBatchLevelPP(MenuController.ProgrammingPoint pp)
-        {
-            if (BatchLevelPP == null)
-                BatchLevelPP = pp;
-            else if (!BatchLevelPP.GetInvocationList().Contains(pp))
-                BatchLevelPP += pp;
-        }
         internal void Add(ALayer layer, int? pos = null)
         {
             if (pos == null)

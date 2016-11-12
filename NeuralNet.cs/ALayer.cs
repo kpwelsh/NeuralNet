@@ -79,6 +79,7 @@ namespace NeuralNetModel
         internal abstract Vector<double> Process(Vector<double> input);
         internal abstract Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null);
         internal abstract void ApplyUpdate();
+        internal abstract double WeightMagnitude();
 
     }
 }

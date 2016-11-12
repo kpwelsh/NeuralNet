@@ -13,3 +13,5 @@ C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\b
 C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\bin\Debug\NeuralNetModel.pdb
 C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\bin\Debug\MathNet.Numerics.xml
 C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\obj\Debug\NNDesignerUI.Slider.resources
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\obj\Debug\NNDesignerUI.DataMonitor.resources
+C:\Users\kevin\Documents\Visual Studio 2015\Projects\NeuralNet.cs\NNDesignerUI\obj\Debug\NNDesignerUI.MLPSystemHealth.resources

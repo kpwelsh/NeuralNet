@@ -30,6 +30,7 @@ namespace NeuralNetModel
             Vector<double> output;
             int count = 0;
             double cost = 0;
+            int batchNumber = 0;
             foreach(TrainingData td in trainingSet)
             {
                 output = Process(td.Data);
@@ -38,12 +39,14 @@ namespace NeuralNetModel
                 PropogateError(CostFunc.Derivative(td.Response, output), batchSize);
 
                 count++;
-                if (count % batchSize == 0)
+                if (count > 0 && count % batchSize == 0)
                 {
-                    BatchLevelPP?.Invoke(); // Trigger the batch level external control
-                    cost = 0;
+                    batchNumber++;
+                    LastCost = cost;
+                    Hook?.Invoke(batchNumber, this); // Trigger the batch level external control
                     ApplyError();
                     count = 0;
+                    cost = 0;
                 }
             }
         }
