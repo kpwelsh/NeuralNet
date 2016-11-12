@@ -74,30 +74,52 @@ namespace NeuralNetModel
             }
         }
 
+        static void LoadXOR(out HashSet<TrainingData> data, int length, int nData)
+        {
+            data = new HashSet<TrainingData>();
+            ContinuousUniform rand = new ContinuousUniform(0, 1);
+            for(var i = 0; i < nData; i++)
+            {
+                TrainingData td = new TrainingData(1, 1);
+                td[0] = new TrainingData.TrainingPair(DenseVector.Create(1, rand.Sample() > 0.5 ? 1 : 0), DenseVector.Create(1, 0.5));
+                for(var j = 1; j < length; j++)
+                {
+                    TrainingData.TrainingPair p = new TrainingData.TrainingPair();
+                    p.Data = DenseVector.Create(1, rand.Sample() > 0.5 ? 1 : 0);
+                    if (td[j - 1].Data[0] == p.Data[0])
+                        p.Response = DenseVector.Create(1, 0);
+                    else
+                        p.Response = DenseVector.Create(1, 1);
+                    td[j] = p;
+                }
+                data.Add(td);
+            }
+        }
+
         static void Main(string[] args)
         {
             TrainRNN();
         }
 
-        static void AddToCosts(params double[] vals)
+        static void AddToCosts(int b, ANet net)
         {
-            foreach (double d in vals)
-                Costs.Add(d);
+            Costs.Add(net.LastCost);
         }
 
         static void TrainRNN()
         {
             HashSet<TrainingData> training;
             //HashSet<TrainingData> test;
-            LoadSinSeq(out training, 0.1, 3000, 2);
+            LoadXOR(out training, 10000, 10);
             //LoadSinSeq(out test, 0.25, 300, 1000);
-            int size = 20;
+            int size = 4;
 
-            FullyConnectedRNN net = new FullyConnectedRNN(0.01, 10);
+            FullyConnectedRNN net = new FullyConnectedRNN(0.01, 20);
             net.SetParameters(0.0001, CostFunction.MeanSquare, true);
-            net.Add(new Layer(size, size, ActivationFunction.Sigmoid, RegularizationMode.None));
-            net.Add(new Layer(size + 1, 1, ActivationFunction.Identity, RegularizationMode.None));
-            
+            net.Add(new Layer(size + 1, size, ActivationFunction.Sigmoid, RegularizationMode.L2));
+            net.Add(new Layer(size + 1, 1, ActivationFunction.Identity, RegularizationMode.L2));
+
+            net.Hook += AddToCosts;
             int epochs = 1;
             do
             {

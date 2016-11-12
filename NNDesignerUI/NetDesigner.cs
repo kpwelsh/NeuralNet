@@ -15,6 +15,7 @@ namespace NNDesignerUI
     {
         private Stack<TabPage> PageStack;
         private SystemHealthMonitor monitor;
+        private bool AddLayerWhenDone = false;
 
         public NetDesigner()
         {
@@ -78,6 +79,8 @@ namespace NNDesignerUI
                 PPreview.Controls.Add(new Label() { Text = $"Activation Function: {locL.ActivationFunction.ToString()}", AutoSize = true }, 0, 1);
                 PPreview.Controls.Add(new Label() { Text = $"Regularization Mode: {locL.RegMode.ToString()}", AutoSize = true }, 1, 1);
             }
+
+            BRemoveLayer.Enabled = true;
         }
 
         private void InitMonitorWindow()
@@ -125,6 +128,9 @@ namespace NNDesignerUI
             DCostFunctionMLP.DataSource = Enum.GetValues(typeof(CostFunction));
             // Set default options up.
             MLP net = MenuModel.CurrentNet as MLP;
+            if (net == null)
+                throw new MenuException("Cannot edit network that is not an MLP with this screen");
+
             TMLPLearningRate.Text = net.LearningRate.ToString();
             DCostFunctionMLP.SelectedItem = net.CostFunction.ToString();
             NAddLayerPos.Value = net.Count;
@@ -169,6 +175,7 @@ namespace NNDesignerUI
                 NLayerInputDim.Value = MenuModel.CurrentNet[index - 1].OutputDimension;
             if (index < MenuModel.CurrentNet.Count)
                 NLayerOutputDim.Value = MenuModel.CurrentNet[index].InputDimension;
+            AddLayerWhenDone = true;
             SwitchToPage(LayerEditor);
         }
 
@@ -193,54 +200,17 @@ namespace NNDesignerUI
                 );
             Back(PMainMenu);
         }
+
+        private void BRemoveLayer_Click(object sender, EventArgs e)
+        {
+            int pos = MenuModel.RemoveLayer();
+            PNetSummary.Controls.RemoveAt(pos);
+            ClearPreviewPanel();
+            BRemoveLayer.Enabled = false;
+            NAddLayerPos.Value = MenuModel.CurrentNet.Count;
+        }
         #endregion
-
-        #region Layer Editor
-        private void LayerEditor_Enter(object sender, EventArgs e)
-        {
-            DActivationFunction.DataSource = Enum.GetValues(typeof(ActivationFunction));
-            CBRegularizationMode.DataSource = Enum.GetValues(typeof(RegularizationMode));
-        }
-
-        private void NLayerOutputDim_ValueChanged(object sender, EventArgs e)
-        {
-            MenuModel.SetLayerParam(outputDim: (int)NLayerOutputDim.Value);
-        }
-
-        private void NLayerInputDim_ValueChanged(object sender, EventArgs e)
-        {
-            MenuModel.SetLayerParam(outputDim: (int)NLayerInputDim.Value);
-        }
-      
-        private void CBRegularizationMode_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            MenuModel.SetLayerParam(regMode: (RegularizationMode)CBRegularizationMode.SelectedItem);
-        }
-
-        private void CBRegularizationMode_Validated(object sender, EventArgs e)
-        {
-        }
-
-        private void DActivationFunction_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            MenuModel.SetLayerParam(actFunc: (ActivationFunction)DActivationFunction.SelectedItem);
-        }
-
-        private void DActivationFunction_Validation(object sender, CancelEventArgs e)
-        {
-        }
         
-        private void BDoneLayerEdit_Click(object sender, EventArgs e)
-        {
-            MenuModel.SetLayerParam((int)NLayerInputDim.Value,
-                (int)NLayerOutputDim.Value,
-                (ActivationFunction)DActivationFunction.SelectedItem,
-                (RegularizationMode)CBRegularizationMode.SelectedItem);
-            MenuModel.InsertLayer((int)NAddLayerPos.Value);
-            Back();
-        }
-        #endregion
-
         #region Train Net
         private void OpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
@@ -267,6 +237,8 @@ namespace NNDesignerUI
         {
             try
             {
+                BPause.Enabled = true;
+                BStartLearn.Enabled = false;
                 InitMonitorWindow();
                 // Multi-threading has special considerations... #LateBinding
                 string trainName = (string)LBLoadedTrain.SelectedItem;
@@ -279,6 +251,8 @@ namespace NNDesignerUI
                     () =>
                     MenuModel.TrainNet(nEpochs, batchSize)
                     );
+                BStartLearn.Enabled = true;
+                BPause.Enabled = false;
             }
             catch (Exception ex)
             {
@@ -305,7 +279,66 @@ namespace NNDesignerUI
         {
             Back();
         }
+
+        private void BPause_Click(object sender, EventArgs e)
+        {
+            if (!BStartLearn.Enabled)
+            {
+                MenuModel.CurrentNet.Abort = true;
+                BPause.Enabled = false;
+                BStartLearn.Enabled = true;
+            }
+        }
         #endregion
 
+        #region Layer Editor
+        private void LayerEditor_Enter(object sender, EventArgs e)
+        {
+            DActivationFunction.DataSource = Enum.GetValues(typeof(ActivationFunction));
+            CBRegularizationMode.DataSource = Enum.GetValues(typeof(RegularizationMode));
+        }
+
+        private void NLayerOutputDim_ValueChanged(object sender, EventArgs e)
+        {
+            MenuModel.SetLayerParam(outputDim: (int)NLayerOutputDim.Value);
+        }
+
+        private void NLayerInputDim_ValueChanged(object sender, EventArgs e)
+        {
+            MenuModel.SetLayerParam(outputDim: (int)NLayerInputDim.Value);
+        }
+
+        private void CBRegularizationMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MenuModel.SetLayerParam(regMode: (RegularizationMode)CBRegularizationMode.SelectedItem);
+        }
+
+        private void CBRegularizationMode_Validated(object sender, EventArgs e)
+        {
+        }
+
+        private void DActivationFunction_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MenuModel.SetLayerParam(actFunc: (ActivationFunction)DActivationFunction.SelectedItem);
+        }
+
+        private void DActivationFunction_Validation(object sender, CancelEventArgs e)
+        {
+        }
+
+        private void BDoneLayerEdit_Click(object sender, EventArgs e)
+        {
+            MenuModel.SetLayerParam((int)NLayerInputDim.Value,
+                (int)NLayerOutputDim.Value,
+                (ActivationFunction)DActivationFunction.SelectedItem,
+                (RegularizationMode)CBRegularizationMode.SelectedItem);
+            if (AddLayerWhenDone)
+            {
+                MenuModel.InsertLayer((int)NAddLayerPos.Value);
+                AddLayerWhenDone = false;
+            }
+            Back();
+        }
+        #endregion
     }
 }

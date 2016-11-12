@@ -89,6 +89,7 @@ namespace NeuralNetModel
                     if (i % (batchSize * MaxMemory) == 0)
                     {
                         nBatch++;
+                        LastCost = cost;
                         Hook?.Invoke(nBatch, this);
                         ApplyError();
                         cost = 0;
@@ -100,6 +101,11 @@ namespace NeuralNetModel
                         PreviousResponse = pair.Response;
                     else
                         PreviousResponse = output;
+                    if (Abort)
+                    {
+                        Abort = false;
+                        return;
+                    }
                 }
 
             }

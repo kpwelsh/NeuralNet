@@ -48,6 +48,10 @@ namespace NeuralNetModel
                     count = 0;
                     cost = 0;
                 }
+                if (Abort)
+                {
+                    return;
+                }
             }
         }
 

@@ -34,6 +34,17 @@ namespace NeuralNetModel
         {
             CurrentLayer = layer ?? new Layer();
         }
+
+        public static int RemoveLayer()
+        {
+            int pos = CurrentNet.Remove(CurrentLayer);
+            CurrentLayer = null;
+            return pos;
+        }
+        public static ALayer RemoveLayer(int pos)
+        {
+            return CurrentNet.Remove(pos);
+        }
         #endregion
 
         #region SetParameters
@@ -199,6 +210,11 @@ namespace NeuralNetModel
             {
                 CurrentNet.Learn(SelectedTrain, batchSize);
                 double error = CurrentNet.Test(SelectedTrain);
+                if(CurrentNet.Abort)
+                {
+                    CurrentNet.Abort = false;
+                    return;
+                }
             }
         }
         #endregion

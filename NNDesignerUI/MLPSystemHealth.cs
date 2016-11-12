@@ -25,6 +25,7 @@ namespace NNDesignerUI
             ca.AxisX.Title = "batch";
             ca.AxisX.MajorGrid.Enabled = false;
             ca.AxisY.MajorGrid.Enabled = false;
+            ca.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.None;
             CostChart.ChartAreas[0] = ca;
 
 
@@ -36,12 +37,14 @@ namespace NNDesignerUI
             ca.AxisX.Title = "batch";
             ca.AxisX.MajorGrid.Enabled = false;
             ca.AxisY.MajorGrid.Enabled = false;
+            ca.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.None;
             TestChart.ChartAreas[0] = ca;
 
             ca = new ChartArea();
             ca.AxisX.Title = "batch";
             ca.AxisX.MajorGrid.Enabled = false;
             ca.AxisY.MajorGrid.Enabled = false;
+            ca.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.None;
             ca.AxisX.ScaleBreakStyle.BreakLineStyle = BreakLineStyle.None;
             WeightChart.ChartAreas[0] = ca;
         }

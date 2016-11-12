@@ -60,6 +60,10 @@
     <Compile Include="HiddenTabControl.Designer.cs">
       <DependentUpon>HiddenTabControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="LayerEditorScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MenuException.cs" />
     <Compile Include="MLPSystemHealth.cs">
       <SubType>Form</SubType>
     </Compile>

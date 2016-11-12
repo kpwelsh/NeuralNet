@@ -51,6 +51,7 @@ namespace NeuralNetModel
             get;
             protected set;
         }
+        public bool Abort;
         #endregion
 
         #region Protected Fields
@@ -65,6 +66,20 @@ namespace NeuralNetModel
                 Layers.Add(layer);
             else
                 Layers.Insert((int)pos, layer);
+        }
+
+        internal int Remove(ALayer l)
+        {
+            int pos = Layers.IndexOf(l);
+            Layers.RemoveAt(pos);
+            return pos;
+        }
+
+        internal ALayer Remove(int pos)
+        {
+            ALayer l = this[pos];
+            Layers.RemoveAt(pos);
+            return l;
         }
         #endregion
 

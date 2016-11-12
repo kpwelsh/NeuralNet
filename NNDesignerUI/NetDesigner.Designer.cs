@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.OpenFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.PPreview = new System.Windows.Forms.TableLayoutPanel();
+            this.PPreviewEdit = new System.Windows.Forms.Panel();
             this.hiddenTabControl1 = new NNDesignerUI.HiddenTabControl();
             this.PMainMenu = new System.Windows.Forms.TabPage();
             this.BEditNet = new System.Windows.Forms.Button();
@@ -38,6 +40,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.BBuildMLP = new System.Windows.Forms.Button();
             this.EditMLP = new System.Windows.Forms.TabPage();
+            this.BRemoveLayer = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.TMLPLearningRate = new System.Windows.Forms.TextBox();
@@ -57,6 +60,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.PTrainNet = new System.Windows.Forms.TabPage();
+            this.BPause = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.BBack_Train = new System.Windows.Forms.Button();
@@ -69,8 +73,6 @@
             this.LBLoadedTrain = new System.Windows.Forms.ListBox();
             this.LMiniBatch = new System.Windows.Forms.Label();
             this.LEpochs = new System.Windows.Forms.Label();
-            this.PPreview = new System.Windows.Forms.TableLayoutPanel();
-            this.PPreviewEdit = new System.Windows.Forms.Panel();
             this.hiddenTabControl1.SuspendLayout();
             this.PMainMenu.SuspendLayout();
             this.PPickANet.SuspendLayout();
@@ -85,6 +87,28 @@
             // OpenFileDialog
             // 
             this.OpenFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.OpenFileDialog_FileOk);
+            // 
+            // PPreview
+            // 
+            this.PPreview.ColumnCount = 3;
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 167F));
+            this.PPreview.Location = new System.Drawing.Point(4, 420);
+            this.PPreview.Name = "PPreview";
+            this.PPreview.RowCount = 3;
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.PPreview.Size = new System.Drawing.Size(496, 59);
+            this.PPreview.TabIndex = 0;
+            // 
+            // PPreviewEdit
+            // 
+            this.PPreviewEdit.Location = new System.Drawing.Point(500, 420);
+            this.PPreviewEdit.Name = "PPreviewEdit";
+            this.PPreviewEdit.Size = new System.Drawing.Size(54, 59);
+            this.PPreviewEdit.TabIndex = 3;
             // 
             // hiddenTabControl1
             // 
@@ -174,6 +198,7 @@
             // 
             // EditMLP
             // 
+            this.EditMLP.Controls.Add(this.BRemoveLayer);
             this.EditMLP.Controls.Add(this.label6);
             this.EditMLP.Controls.Add(this.label5);
             this.EditMLP.Controls.Add(this.TMLPLearningRate);
@@ -190,6 +215,16 @@
             this.EditMLP.Text = "EditMLP";
             this.EditMLP.UseVisualStyleBackColor = true;
             this.EditMLP.Enter += new System.EventHandler(this.EditMLP_Enter);
+            // 
+            // BRemoveLayer
+            // 
+            this.BRemoveLayer.Location = new System.Drawing.Point(385, 75);
+            this.BRemoveLayer.Name = "BRemoveLayer";
+            this.BRemoveLayer.Size = new System.Drawing.Size(75, 23);
+            this.BRemoveLayer.TabIndex = 8;
+            this.BRemoveLayer.Text = "Remove";
+            this.BRemoveLayer.UseVisualStyleBackColor = true;
+            this.BRemoveLayer.Click += new System.EventHandler(this.BRemoveLayer_Click);
             // 
             // label6
             // 
@@ -405,6 +440,7 @@
             // 
             // PTrainNet
             // 
+            this.PTrainNet.Controls.Add(this.BPause);
             this.PTrainNet.Controls.Add(this.label8);
             this.PTrainNet.Controls.Add(this.label7);
             this.PTrainNet.Controls.Add(this.BBack_Train);
@@ -424,6 +460,17 @@
             this.PTrainNet.TabIndex = 4;
             this.PTrainNet.Text = "TrainNet";
             this.PTrainNet.UseVisualStyleBackColor = true;
+            // 
+            // BPause
+            // 
+            this.BPause.Enabled = false;
+            this.BPause.Location = new System.Drawing.Point(449, 266);
+            this.BPause.Name = "BPause";
+            this.BPause.Size = new System.Drawing.Size(93, 23);
+            this.BPause.TabIndex = 12;
+            this.BPause.Text = "Pause";
+            this.BPause.UseVisualStyleBackColor = true;
+            this.BPause.Click += new System.EventHandler(this.BPause_Click);
             // 
             // label8
             // 
@@ -542,28 +589,6 @@
             this.LEpochs.TabIndex = 0;
             this.LEpochs.Text = "Number of Epochs";
             // 
-            // PPreview
-            // 
-            this.PPreview.ColumnCount = 3;
-            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
-            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
-            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 163F));
-            this.PPreview.Location = new System.Drawing.Point(4, 420);
-            this.PPreview.Name = "PPreview";
-            this.PPreview.RowCount = 3;
-            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.PPreview.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.PPreview.Size = new System.Drawing.Size(496, 59);
-            this.PPreview.TabIndex = 0;
-            // 
-            // PPreviewEdit
-            // 
-            this.PPreviewEdit.Location = new System.Drawing.Point(500, 420);
-            this.PPreviewEdit.Name = "PPreviewEdit";
-            this.PPreviewEdit.Size = new System.Drawing.Size(54, 59);
-            this.PPreviewEdit.TabIndex = 3;
-            // 
             // NetDesigner
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -634,6 +659,8 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TableLayoutPanel PPreview;
         private System.Windows.Forms.Panel PPreviewEdit;
+        private System.Windows.Forms.Button BRemoveLayer;
+        private System.Windows.Forms.Button BPause;
     }
 }
 
