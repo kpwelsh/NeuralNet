@@ -13,14 +13,25 @@ namespace NNDesignerUI
 {
     public partial class NetDesigner : Form
     {
-        private Stack<TabPage> PageStack;
+        private Stack<PageCallback> PageStack;
+        private delegate void Callback(bool success);
+        private class PageCallback
+        {
+            public TabPage Page;
+            public Callback Callback;
+            public PageCallback(TabPage p, Callback c = null)
+            {
+                Page = p;
+                Callback = c;
+            }
+        }
+
         private SystemHealthMonitor monitor;
-        private bool AddLayerWhenDone = false;
 
         public NetDesigner()
         {
             InitializeComponent();
-            PageStack = new Stack<TabPage>();
+            PageStack = new Stack<PageCallback>();
         }
 
         #region Utility
@@ -30,29 +41,20 @@ namespace NNDesignerUI
             PPreviewEdit.Controls.Clear();
         }
 
-        private void SwitchToPage(TabPage next)
+        private void SwitchToPage(TabPage next, Callback onReturn = null)
         {
             ClearPreviewPanel();
-            PageStack.Push(hiddenTabControl1.SelectedTab);
+            PageStack.Push(new PageCallback(hiddenTabControl1.SelectedTab, onReturn));
             hiddenTabControl1.SelectedTab = next;
         }
 
-        private void Back(TabPage until = null)
+        private void Back(bool success)
         {
             ClearPreviewPanel();
-            TabPage prev = null;
-            if (until == null)
-                prev = PageStack.Pop();
-            else
-            {
-                while (PageStack.Count > 0 && !PageStack.Peek().Equals(until))
-                    PageStack.Pop();
-                if (PageStack.Count > 0)
-                    prev = PageStack.Pop();
-            }
+            PageCallback prev = PageStack.Pop();
 
-            if(prev != null)
-                hiddenTabControl1.SelectedTab = prev;
+            hiddenTabControl1.SelectedTab = prev.Page;
+            prev.Callback?.Invoke(success);
         }
 
         private void ShowLayerSummary(int index)
@@ -85,13 +87,15 @@ namespace NNDesignerUI
 
         private void InitMonitorWindow()
         {
-            if(monitor == null)
+            if(monitor == null || monitor.IsDisposed())
             {
                 MLPSystemHealth m = new MLPSystemHealth();
                 m.Show();
                 monitor = m;
-                monitor.AttachToModel();
             }
+            if(!(monitor == null || monitor.IsDisposed()))
+                monitor.AttachToModel();
+
         }
         #endregion
 
@@ -117,7 +121,14 @@ namespace NNDesignerUI
         private void BBuildMLP_Click(object sender, EventArgs e)
         {
             MenuModel.NewMLP();
-            SwitchToPage(EditMLP);
+            SwitchToPage(
+                EditMLP,
+                (bool s) =>
+                {
+                    if (s)
+                        Back(s);
+                }
+                );
             NAddLayerPos.Value = MenuModel.NumberOfLayers();
         }
         #endregion
@@ -133,9 +144,13 @@ namespace NNDesignerUI
 
             TMLPLearningRate.Text = net.LearningRate.ToString();
             DCostFunctionMLP.SelectedItem = net.CostFunction.ToString();
-            NAddLayerPos.Value = net.Count;
 
-            // Populate Summary
+            BuildLayerSummary();
+        }
+
+        private void BuildLayerSummary()
+        {
+            NAddLayerPos.Value = MenuModel.CurrentNet.Count;
             PNetSummary.Controls.Clear();
 
             List<ALayer> layers = MenuModel.GetLayers();
@@ -147,19 +162,19 @@ namespace NNDesignerUI
 
 
                 int index = i;
-                b.MouseClick += 
-                    (object s, MouseEventArgs ev) => 
-                {
-                    ClearPreviewPanel();
-                    ShowLayerSummary(index);
-                };
+                b.MouseClick +=
+                    (object s, MouseEventArgs ev) =>
+                    {
+                        ClearPreviewPanel();
+                        ShowLayerSummary(index);
+                    };
 
                 ALayer l = layers[i];
                 string buttonText = "";
-                if(l is Layer)
+                if (l is Layer)
                 {
                     Layer locL = l as Layer;
-                    buttonText += $"{locL.InputDimension}\n" + new string('-',5) + $"\n{locL.OutputDimension}";
+                    buttonText += $"{locL.InputDimension}\n" + new string('-', 5) + $"\n{locL.OutputDimension}";
                 }
 
                 b.Text = buttonText;
@@ -169,14 +184,26 @@ namespace NNDesignerUI
 
         private void BAddLayer_Click(object sender, EventArgs e)
         {
+            ClearPreviewPanel();
             MenuModel.SetLayer();
             int index = (int)NAddLayerPos.Value;
             if (index > 0)
                 NLayerInputDim.Value = MenuModel.CurrentNet[index - 1].OutputDimension;
             if (index < MenuModel.CurrentNet.Count)
                 NLayerOutputDim.Value = MenuModel.CurrentNet[index].InputDimension;
-            AddLayerWhenDone = true;
-            SwitchToPage(LayerEditor);
+
+            int layerPos = (int)NAddLayerPos.Value;
+            SwitchToPage(
+                LayerEditor,
+                (bool s) =>
+                {
+                    if (s)
+                    {
+                        MenuModel.InsertLayer(layerPos);
+                        BuildLayerSummary();
+                    }
+                }
+                );
         }
 
         private void NAddLayerPos_ValueChanged(object sender, EventArgs e)
@@ -198,7 +225,7 @@ namespace NNDesignerUI
                 learningRate: double.Parse(TMLPLearningRate.Text), 
                 costFunc: (CostFunction)DCostFunctionMLP.SelectedItem
                 );
-            Back(PMainMenu);
+            Back(true);
         }
 
         private void BRemoveLayer_Click(object sender, EventArgs e)
@@ -212,12 +239,7 @@ namespace NNDesignerUI
         #endregion
         
         #region Train Net
-        private void OpenFileDialog_FileOk(object sender, CancelEventArgs e)
-        {
-
-        }
-
-        private void BLoadTestSet_Click(object sender, EventArgs e)
+        private void LoadTestingSet(object sender, EventArgs e)
         {
             OpenFileDialog.ShowDialog();
             string name = OpenFileDialog.FileName.Split('\\').Last();
@@ -225,7 +247,7 @@ namespace NNDesignerUI
             LBLoadedTest.Items.Add(name);
         }
 
-        private void BLoadTrainSet_Click(object sender, EventArgs e)
+        private void LoadTrainingSet(object sender, EventArgs e)
         {
             OpenFileDialog.ShowDialog();
             string name = OpenFileDialog.FileName.Split('\\').Last();
@@ -233,14 +255,15 @@ namespace NNDesignerUI
             LBLoadedTrain.Items.Add(name);
         }
 
-        async private void BStartLearn_Click(object sender, EventArgs e)
+        async private void Learn(object sender, EventArgs e)
         {
             try
             {
                 BPause.Enabled = true;
                 BStartLearn.Enabled = false;
+                BTweakNet.Enabled = false;
                 InitMonitorWindow();
-                // Multi-threading has special considerations... #LateBinding
+                // Multi-threading has special considerations. #LateBinding
                 string trainName = (string)LBLoadedTrain.SelectedItem;
                 string testName = (string)LBLoadedTest.SelectedItem;
                 int nEpochs = SNEpochs.Value;
@@ -253,6 +276,7 @@ namespace NNDesignerUI
                     );
                 BStartLearn.Enabled = true;
                 BPause.Enabled = false;
+                BTweakNet.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -265,28 +289,42 @@ namespace NNDesignerUI
             MessageBox.Show($"Heres the error: {vals[0]}");
         }
 
-        private void LBLoadedTest_SelectedIndexChanged(object sender, EventArgs e)
+        private void ChangedTestSelection(object sender, EventArgs e)
         {
             BStartLearn.Enabled = LBLoadedTest.SelectedItem != null && LBLoadedTrain.SelectedItem != null;
         }
 
-        private void LBLoadedTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private void ChangedTrainSelection(object sender, EventArgs e)
         {
             BStartLearn.Enabled = LBLoadedTest.SelectedItem != null && LBLoadedTrain.SelectedItem != null;
         }
 
-        private void BBack_Train_Click(object sender, EventArgs e)
+        private void Back_TrainingPage(object sender, EventArgs e)
         {
-            Back();
+            Back(false);
         }
 
-        private void BPause_Click(object sender, EventArgs e)
+        private void Pause(object sender, EventArgs e)
         {
             if (!BStartLearn.Enabled)
             {
                 MenuModel.CurrentNet.Abort = true;
-                BPause.Enabled = false;
-                BStartLearn.Enabled = true;
+            }
+        }
+
+        private void TweakNet(object sender, EventArgs e)
+        {
+            monitor?.DeAttach();
+            MenuModel.CacheNet();
+            SwitchToPage(EditMLP, TweakOnReturn);
+        }
+        private void TweakOnReturn(bool success)
+        {
+            if (!success)
+                MenuModel.RestoreFromCache();
+            else
+            {
+                MenuModel.ReInitialize();
             }
         }
         #endregion
@@ -332,13 +370,9 @@ namespace NNDesignerUI
                 (int)NLayerOutputDim.Value,
                 (ActivationFunction)DActivationFunction.SelectedItem,
                 (RegularizationMode)CBRegularizationMode.SelectedItem);
-            if (AddLayerWhenDone)
-            {
-                MenuModel.InsertLayer((int)NAddLayerPos.Value);
-                AddLayerWhenDone = false;
-            }
-            Back();
+            Back(true);
         }
         #endregion
+
     }
 }

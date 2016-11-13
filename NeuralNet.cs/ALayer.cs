@@ -7,7 +7,9 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public enum RegularizationMode { L1, L2, Dropout, None }
+    [Serializable]
     public abstract class ALayer
     {
         protected int? outputDimension;
@@ -76,6 +78,7 @@ namespace NeuralNetModel
             }
         }
 
+        internal abstract void ReInitialize();
         internal abstract Vector<double> Process(Vector<double> input);
         internal abstract Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null);
         internal abstract void ApplyUpdate();

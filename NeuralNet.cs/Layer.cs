@@ -9,6 +9,7 @@ using MathNet.Numerics.Distributions;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public class Layer : ALayer
     {
         public Matrix<double> Weights;
@@ -18,7 +19,6 @@ namespace NeuralNetModel
         private Matrix<double> WeightErrorCache;
         private Vector<double> InputCache;
 
-        private Normal gaussDist;
         private double NormalizationWeight = 0.01;
 
         private bool Configured = true;
@@ -28,10 +28,9 @@ namespace NeuralNetModel
             SetParameters(inputDimension, outputDimension, actFunc, regMode);
         }
         
-
         private void InitializeWeights()
         {
-            gaussDist = new Normal(0, 1 / Math.Sqrt(OutputDimension));
+            Normal gaussDist; gaussDist = new Normal(0, 1 / Math.Sqrt(OutputDimension));
             
             Biases = DenseVector.CreateRandom(OutputDimension, gaussDist);
             Weights = DenseMatrix.CreateRandom(InputDimension, OutputDimension, gaussDist);
@@ -39,6 +38,11 @@ namespace NeuralNetModel
             BiasErrorCache = new DenseVector(OutputDimension);
             WeightErrorCache = new DenseMatrix(InputDimension, OutputDimension);
             InputCache = new DenseVector(InputDimension);
+        }
+
+        internal override void ReInitialize()
+        {
+            InitializeWeights();
         }
 
         internal void SetParameters(int? inputDimension = null, int? outputDimension = null, ActivationFunction? actFunc = null, RegularizationMode? regMode = null)

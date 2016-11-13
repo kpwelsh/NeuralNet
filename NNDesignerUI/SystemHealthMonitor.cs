@@ -10,5 +10,6 @@ namespace NNDesignerUI
     {
         void AttachToModel();
         void DeAttach();
+        bool IsDisposed();
     }
 }

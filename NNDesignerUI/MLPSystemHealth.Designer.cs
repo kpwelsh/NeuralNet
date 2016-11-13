@@ -37,6 +37,7 @@
             this.TestChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.WeightChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.label3 = new System.Windows.Forms.Label();
+            this.BMLPClear = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.CostChart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TestChart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.WeightChart)).BeginInit();
@@ -97,11 +98,22 @@
             this.label3.TabIndex = 5;
             this.label3.Text = "Weight Magnitude";
             // 
+            // BMLPClear
+            // 
+            this.BMLPClear.Location = new System.Drawing.Point(223, 0);
+            this.BMLPClear.Name = "BMLPClear";
+            this.BMLPClear.Size = new System.Drawing.Size(91, 23);
+            this.BMLPClear.TabIndex = 6;
+            this.BMLPClear.Text = "Clear";
+            this.BMLPClear.UseVisualStyleBackColor = true;
+            this.BMLPClear.Click += new System.EventHandler(this.BMLPClear_Click);
+            // 
             // MLPSystemHealth
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(530, 441);
+            this.Controls.Add(this.BMLPClear);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.WeightChart);
             this.Controls.Add(this.TestChart);
@@ -127,5 +139,6 @@
         private System.Windows.Forms.DataVisualization.Charting.Chart TestChart;
         private System.Windows.Forms.DataVisualization.Charting.Chart WeightChart;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button BMLPClear;
     }
 }

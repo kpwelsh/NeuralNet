@@ -73,6 +73,7 @@
             this.LBLoadedTrain = new System.Windows.Forms.ListBox();
             this.LMiniBatch = new System.Windows.Forms.Label();
             this.LEpochs = new System.Windows.Forms.Label();
+            this.BTweakNet = new System.Windows.Forms.Button();
             this.hiddenTabControl1.SuspendLayout();
             this.PMainMenu.SuspendLayout();
             this.PPickANet.SuspendLayout();
@@ -84,16 +85,12 @@
             this.PTrainNet.SuspendLayout();
             this.SuspendLayout();
             // 
-            // OpenFileDialog
-            // 
-            this.OpenFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.OpenFileDialog_FileOk);
-            // 
             // PPreview
             // 
             this.PPreview.ColumnCount = 3;
             this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
             this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
-            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 167F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 168F));
             this.PPreview.Location = new System.Drawing.Point(4, 420);
             this.PPreview.Name = "PPreview";
             this.PPreview.RowCount = 3;
@@ -440,6 +437,7 @@
             // 
             // PTrainNet
             // 
+            this.PTrainNet.Controls.Add(this.BTweakNet);
             this.PTrainNet.Controls.Add(this.BPause);
             this.PTrainNet.Controls.Add(this.label8);
             this.PTrainNet.Controls.Add(this.label7);
@@ -470,7 +468,7 @@
             this.BPause.TabIndex = 12;
             this.BPause.Text = "Pause";
             this.BPause.UseVisualStyleBackColor = true;
-            this.BPause.Click += new System.EventHandler(this.BPause_Click);
+            this.BPause.Click += new System.EventHandler(this.Pause);
             // 
             // label8
             // 
@@ -498,7 +496,7 @@
             this.BBack_Train.TabIndex = 9;
             this.BBack_Train.Text = "Back";
             this.BBack_Train.UseVisualStyleBackColor = true;
-            this.BBack_Train.Click += new System.EventHandler(this.BBack_Train_Click);
+            this.BBack_Train.Click += new System.EventHandler(this.Back_TrainingPage);
             // 
             // BStartLearn
             // 
@@ -509,11 +507,11 @@
             this.BStartLearn.TabIndex = 8;
             this.BStartLearn.Text = "Learn!";
             this.BStartLearn.UseVisualStyleBackColor = true;
-            this.BStartLearn.Click += new System.EventHandler(this.BStartLearn_Click);
+            this.BStartLearn.Click += new System.EventHandler(this.Learn);
             // 
             // SBatchSize
             // 
-            this.SBatchSize.Location = new System.Drawing.Point(153, 251);
+            this.SBatchSize.Location = new System.Drawing.Point(109, 224);
             this.SBatchSize.Max = 500;
             this.SBatchSize.Min = 0;
             this.SBatchSize.Name = "SBatchSize";
@@ -523,7 +521,7 @@
             // 
             // SNEpochs
             // 
-            this.SNEpochs.Location = new System.Drawing.Point(153, 220);
+            this.SNEpochs.Location = new System.Drawing.Point(109, 193);
             this.SNEpochs.Max = 20;
             this.SNEpochs.Min = 0;
             this.SNEpochs.Name = "SNEpochs";
@@ -540,7 +538,7 @@
             this.BLoadTrainSet.TabIndex = 5;
             this.BLoadTrainSet.Text = "Load From File";
             this.BLoadTrainSet.UseVisualStyleBackColor = true;
-            this.BLoadTrainSet.Click += new System.EventHandler(this.BLoadTrainSet_Click);
+            this.BLoadTrainSet.Click += new System.EventHandler(this.LoadTrainingSet);
             // 
             // BLoadTestSet
             // 
@@ -551,7 +549,7 @@
             this.BLoadTestSet.TabIndex = 4;
             this.BLoadTestSet.Text = "Load From File";
             this.BLoadTestSet.UseVisualStyleBackColor = true;
-            this.BLoadTestSet.Click += new System.EventHandler(this.BLoadTestSet_Click);
+            this.BLoadTestSet.Click += new System.EventHandler(this.LoadTestingSet);
             // 
             // LBLoadedTest
             // 
@@ -560,7 +558,7 @@
             this.LBLoadedTest.Name = "LBLoadedTest";
             this.LBLoadedTest.Size = new System.Drawing.Size(120, 95);
             this.LBLoadedTest.TabIndex = 3;
-            this.LBLoadedTest.SelectedIndexChanged += new System.EventHandler(this.LBLoadedTest_SelectedIndexChanged);
+            this.LBLoadedTest.SelectedIndexChanged += new System.EventHandler(this.ChangedTestSelection);
             // 
             // LBLoadedTrain
             // 
@@ -569,12 +567,12 @@
             this.LBLoadedTrain.Name = "LBLoadedTrain";
             this.LBLoadedTrain.Size = new System.Drawing.Size(120, 95);
             this.LBLoadedTrain.TabIndex = 2;
-            this.LBLoadedTrain.SelectedIndexChanged += new System.EventHandler(this.LBLoadedTrain_SelectedIndexChanged);
+            this.LBLoadedTrain.SelectedIndexChanged += new System.EventHandler(this.ChangedTrainSelection);
             // 
             // LMiniBatch
             // 
             this.LMiniBatch.AutoSize = true;
-            this.LMiniBatch.Location = new System.Drawing.Point(52, 256);
+            this.LMiniBatch.Location = new System.Drawing.Point(8, 229);
             this.LMiniBatch.Name = "LMiniBatch";
             this.LMiniBatch.Size = new System.Drawing.Size(58, 13);
             this.LMiniBatch.TabIndex = 1;
@@ -583,11 +581,21 @@
             // LEpochs
             // 
             this.LEpochs.AutoSize = true;
-            this.LEpochs.Location = new System.Drawing.Point(52, 225);
+            this.LEpochs.Location = new System.Drawing.Point(8, 198);
             this.LEpochs.Name = "LEpochs";
             this.LEpochs.Size = new System.Drawing.Size(95, 13);
             this.LEpochs.TabIndex = 0;
             this.LEpochs.Text = "Number of Epochs";
+            // 
+            // BTweakNet
+            // 
+            this.BTweakNet.Location = new System.Drawing.Point(28, 286);
+            this.BTweakNet.Name = "BTweakNet";
+            this.BTweakNet.Size = new System.Drawing.Size(75, 23);
+            this.BTweakNet.TabIndex = 13;
+            this.BTweakNet.Text = "Tweak Net";
+            this.BTweakNet.UseVisualStyleBackColor = true;
+            this.BTweakNet.Click += new System.EventHandler(this.TweakNet);
             // 
             // NetDesigner
             // 
@@ -661,6 +669,7 @@
         private System.Windows.Forms.Panel PPreviewEdit;
         private System.Windows.Forms.Button BRemoveLayer;
         private System.Windows.Forms.Button BPause;
+        private System.Windows.Forms.Button BTweakNet;
     }
 }
 

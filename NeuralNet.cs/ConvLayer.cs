@@ -9,6 +9,7 @@ using MathNet.Numerics.Distributions;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public class ConvLayer : ALayer
     {
         #region Properties
@@ -77,13 +78,18 @@ namespace NeuralNetModel
             InputWidth = inputWidth;
             InputHeight = inputHeight;
             InputDepth = inputDepth;
+            Initialize();
+            ActFunc = new Sigmoid();
+        }
+        
+        internal void Initialize()
+        {
             Weights = new Matrix<double>[NFilters];
             WeightErrorCache = new Matrix<double>[NFilters];
             gaussDist = new Normal(0, 1 / Range);
             for (var i = 0; i < Weights.Length; i++)
             {
-                Weights[i] = DenseMatrix.Create(Range, Range, 1);
-                //Weights[i] = DenseMatrix.CreateRandom(Range, Range, gaussDist);
+                Weights[i] = DenseMatrix.CreateRandom(Range, Range, gaussDist);
                 WeightErrorCache[i] = DenseMatrix.Create(Range, Range, 0);
             }
 
@@ -99,7 +105,10 @@ namespace NeuralNetModel
             SetOutputDimensions();
             DirectInputCache = new DenseVector(OutputDimension);
 
-            ActFunc = new Sigmoid();
+        }
+        internal override void ReInitialize()
+        {
+            Initialize();
         }
 
         #region ALayer Implementation

@@ -7,7 +7,9 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public enum PoolingMode { Max, Mean}
+    [Serializable]
     class PoolingLayer : ALayer
     {
         public int InputWidth
@@ -52,6 +54,10 @@ namespace NeuralNetModel
             Mode = mode;
         }
 
+        internal override void ReInitialize()
+        {
+            // There is nothing actually learned in the pooling layer.
+        }
 
         internal override void ApplyUpdate()
         {

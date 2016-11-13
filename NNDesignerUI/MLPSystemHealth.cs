@@ -125,9 +125,9 @@ namespace NNDesignerUI
 
         public void AttachToModel()
         {
-            MenuModel.AddCostMonitor(CostUpdate);
-            MenuModel.AddTestMonitor(TestUpdate);
-            MenuModel.AddWeightMonitor(WeightUpdate);
+            MenuModel.AddCostMonitor(CostUpdate, 10001);
+            MenuModel.AddTestMonitor(TestUpdate, 10002);
+            MenuModel.AddWeightMonitor(WeightUpdate, 10003);
         }
 
         public void DeAttach()
@@ -138,6 +138,19 @@ namespace NNDesignerUI
         private void MLPSystemHealth_FormClosing(object sender, FormClosingEventArgs e)
         {
             DeAttach();
+        }
+
+        bool SystemHealthMonitor.IsDisposed()
+        {
+            return IsDisposed;
+        }
+
+        private void BMLPClear_Click(object sender, EventArgs e)
+        {
+            CostChart.Series[0].Points.Clear();
+            TestChart.Series[0].Points.Clear();
+            foreach (var s in CostChart.Series)
+                s.Points.Clear();
         }
     }
 }

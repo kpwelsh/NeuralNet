@@ -7,6 +7,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public enum CostFunction { MeanSquare, CrossEntropy }
     public interface ICostFunction
     {

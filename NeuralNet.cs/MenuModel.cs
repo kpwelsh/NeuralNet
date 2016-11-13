@@ -10,11 +10,12 @@ namespace NeuralNetModel
     public static class MenuModel 
     {
         public delegate void UpdateCallback(int x, params double[] c);
-        public static ANet.TrainingHook Hooks;
+        private static List<int> HookUIDs = new List<int>();
         public static int TestSampleFreq = 1;
         public static int GenericSampleFreq = 1;
 
         public static ANet CurrentNet;
+        private static ANet CachedNet;
         public static ALayer CurrentLayer;
 
         static Dictionary<string, HashSet<TrainingData>> CachedTrainingSets = new Dictionary<string, HashSet<TrainingData>>();
@@ -27,6 +28,24 @@ namespace NeuralNetModel
         public static void NewMLP()
         {
             CurrentNet = new MLP();
+        }
+        public static void CacheNet()
+        {
+            CachedNet = CurrentNet.DeepCopy();
+        }
+        public static void RestoreFromCache()
+        {
+            CurrentNet = CachedNet.DeepCopy();
+        }
+
+        /// <summary>
+        /// This will check the cached and working nets to see if anything important has changed,
+        /// and if so, will reset the weights.
+        /// </summary>
+        public static void ReInitialize()
+        {
+            // Right now it just resets it everytime.
+            CurrentNet.ReInitialize();
         }
 
         // Layers
@@ -145,12 +164,13 @@ namespace NeuralNetModel
         #endregion
 
         #region Logging and Hooks
-        public static void AddWeightMonitor(UpdateCallback hook)
+        public static void AddWeightMonitor(UpdateCallback hook,int uid)
         {
             if (CurrentNet == null)
                 return;
-            if(!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            if(!HookUIDs.Contains(uid))
             {
+                HookUIDs.Add(uid);
                 CurrentNet.Hook += (int x, ANet self) =>
                 {
                     if(x % GenericSampleFreq == 0)
@@ -166,12 +186,13 @@ namespace NeuralNetModel
             }
         }
 
-        public static void AddCostMonitor(UpdateCallback hook)
+        public static void AddCostMonitor(UpdateCallback hook, int uid)
         {
             if (CurrentNet == null)
                 return;
-            if (!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            if (!HookUIDs.Contains(uid))
             {
+                HookUIDs.Add(uid);
                 CurrentNet.Hook += (int x, ANet self) =>
                 {
                     hook(1, self.LastCost);
@@ -179,12 +200,13 @@ namespace NeuralNetModel
             }
         }
 
-        public static void AddTestMonitor(UpdateCallback hook)
+        public static void AddTestMonitor(UpdateCallback hook, int uid)
         {
             if (CurrentNet == null)
                 return;
-            if (!(CurrentNet.Hook?.GetInvocationList()?.Contains(hook) ?? false))
+            if (!HookUIDs.Contains(uid))
             {
+                HookUIDs.Add(uid);
                 CurrentNet.Hook += (int x, ANet self) =>
                 {
                     if(x % TestSampleFreq == 0)

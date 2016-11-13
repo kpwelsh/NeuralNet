@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public abstract class ANet
     {
         public delegate void TrainingHook(int batchNumber, ANet self = null);
@@ -81,9 +84,39 @@ namespace NeuralNetModel
             Layers.RemoveAt(pos);
             return l;
         }
+
+        internal static ANet Load<T>(string fp) where T : ANet
+        {
+            Stream s = new FileStream(fp, FileMode.Open);
+            BinaryFormatter bf = new BinaryFormatter();
+            return bf.Deserialize(s) as T;
+        }
+
+        internal ANet DeepCopy()
+        {
+            using (var ms = new MemoryStream(100000000))
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, this);
+                ms.Seek(0, SeekOrigin.Begin);
+                return formatter.Deserialize(ms) as ANet;
+            }
+        }
+
+        internal void Save(string fp)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            Stream s = new FileStream(fp, FileMode.OpenOrCreate);
+            bf.Serialize(s, this);
+        }
         #endregion
 
         #region Overridable
+        internal virtual void ReInitialize()
+        {
+            foreach(var l in Layers)
+                l.ReInitialize();
+        }
         internal virtual void SetParameters(double? learningRate = null, CostFunction? costFunc = null)
         {
             if (costFunc != null)

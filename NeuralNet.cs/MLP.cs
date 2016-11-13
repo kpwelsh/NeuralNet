@@ -5,9 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace NeuralNetModel
 {
+    [Serializable]
     public class MLP : ANet
     {
         #region Constructor
@@ -18,7 +21,7 @@ namespace NeuralNetModel
         }
         #endregion
 
-        #region Public Methods
+        #region Internal Methods
         /// <summary>
         /// Performs SGD on a set of training data using a mini-batch size provided.
         /// </summary>
@@ -74,6 +77,7 @@ namespace NeuralNetModel
 
             return 1 - nRight / testData.Count;
         }
+        
         #endregion
 
         #region Private Methods
@@ -104,6 +108,8 @@ namespace NeuralNetModel
                 ret[i] /= sum;
             return ret;
         }
+
+
         #endregion
     }
 }
