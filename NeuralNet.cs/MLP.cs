@@ -77,7 +77,6 @@ namespace NeuralNetModel
 
             return 1 - nRight / testData.Count;
         }
-        
         #endregion
 
         #region Private Methods
@@ -108,8 +107,6 @@ namespace NeuralNetModel
                 ret[i] /= sum;
             return ret;
         }
-
-
         #endregion
     }
 }

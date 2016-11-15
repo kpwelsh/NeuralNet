@@ -94,7 +94,7 @@ namespace NeuralNetModel
 
         internal ANet DeepCopy()
         {
-            using (var ms = new MemoryStream(100000000))
+            using (var ms = new MemoryStream())
             {
                 var formatter = new BinaryFormatter();
                 formatter.Serialize(ms, this);

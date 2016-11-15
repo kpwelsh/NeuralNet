@@ -31,7 +31,7 @@ namespace NeuralNetModel
         }
         public static void CacheNet()
         {
-            CachedNet = CurrentNet.DeepCopy();
+            CachedNet = CurrentNet?.DeepCopy();
         }
         public static void RestoreFromCache()
         {
@@ -231,7 +231,6 @@ namespace NeuralNetModel
             for (var i = 0; i < nEpochs; i++)
             {
                 CurrentNet.Learn(SelectedTrain, batchSize);
-                double error = CurrentNet.Test(SelectedTrain);
                 if(CurrentNet.Abort)
                 {
                     CurrentNet.Abort = false;

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NeuralNetModel;
+using System.Diagnostics;
 
 namespace NNDesignerUI
 {
@@ -270,6 +271,7 @@ namespace NNDesignerUI
                 int batchSize = SBatchSize.Value;
                 MenuModel.SelectTest(testName);
                 MenuModel.SelectTrain(trainName);
+                
                 await Task.Run(
                     () =>
                     MenuModel.TrainNet(nEpochs, batchSize)

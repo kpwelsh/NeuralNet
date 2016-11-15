@@ -7,6 +7,7 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Distributions;
 using System.IO;
+using System.Diagnostics;
 
 namespace NeuralNetModel
 {
@@ -98,7 +99,10 @@ namespace NeuralNetModel
 
         static void Main(string[] args)
         {
-            TrainRNN();
+            
+            TrainFeedForward();
+            while (true) ;
+                
         }
 
         static void AddToCosts(int b, ANet net)
@@ -136,22 +140,32 @@ namespace NeuralNetModel
             } while (int.TryParse(Console.ReadLine(), out epochs));
         }
 
-        static void TrainFeedForward()
+        async static void TrainFeedForward()
         {
 
-            MenuModel.LoadTrainingSet("mnist_train", "smallMnist_train.csv");
-            MenuModel.LoadTestSet("mnist_test", "newMnist_test.csv");
+            MenuModel.LoadTrainingSet("xor_train", "xor_train.csv");
+            MenuModel.LoadTestSet("xor_test", "xor_test.csv");
 
             MLP net = new MLP();
             net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
-            net.Add(new Layer(784, 30, ActivationFunction.Sigmoid));
-            net.Add(new Layer(30, 10, ActivationFunction.Sigmoid));
+            net.Add(new Layer(2, 30, ActivationFunction.Sigmoid));
+            net.Add(new Layer(30, 2, ActivationFunction.Sigmoid));
 
             MenuModel.CurrentNet = net;
 
-            MenuModel.SelectTest("mnist_test");
-            MenuModel.SelectTrain("mnist_train");
-            MenuModel.TrainNet(2, 100);
+            MenuModel.SelectTest("xor_test");
+            MenuModel.SelectTrain("xor_train");
+
+            Stopwatch sw = new Stopwatch();
+            double t;
+            Console.WriteLine("Done Loading");
+            sw.Start();
+            while (Console.ReadLine().Equals("y"))
+            {
+                t = sw.ElapsedMilliseconds;
+                await Task.Run(() => MenuModel.TrainNet(1, 100));
+                Console.WriteLine($"Time Difference: {sw.ElapsedMilliseconds - t}");
+            }
         }
 
         private static void PrintToScreen(params double[] vals)

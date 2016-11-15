@@ -19,7 +19,7 @@ namespace NNDesignerUI
             InitializeComponent();
             WeightChart.Legends.Add(new Legend("Legend"));
             Series cost = new Series("Cost");
-            cost.ChartType = SeriesChartType.Spline;
+            cost.ChartType = SeriesChartType.FastLine;
             CostChart.Series.Add(cost);
             ChartArea ca = new ChartArea();
             ca.AxisX.Title = "batch";
@@ -30,7 +30,7 @@ namespace NNDesignerUI
 
 
             Series test = new Series("Test");
-            test.ChartType = SeriesChartType.Spline;
+            test.ChartType = SeriesChartType.FastLine;
             TestChart.Series.Add(test);
 
             ca = new ChartArea();
@@ -109,7 +109,7 @@ namespace NNDesignerUI
                     {
                         Series s = new Series(i.ToString());
                         s.Legend = "Legend";
-                        s.ChartType = SeriesChartType.Spline;
+                        s.ChartType = SeriesChartType.FastLine;
                         WeightChart.Series.Add(s);
                     }
 
@@ -149,7 +149,7 @@ namespace NNDesignerUI
         {
             CostChart.Series[0].Points.Clear();
             TestChart.Series[0].Points.Clear();
-            foreach (var s in CostChart.Series)
+            foreach (var s in WeightChart.Series)
                 s.Points.Clear();
         }
     }
