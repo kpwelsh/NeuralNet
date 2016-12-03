@@ -64,6 +64,7 @@ namespace NeuralNetModel
 
         internal override void Learn(HashSet<TrainingData> trainSet,int batchSize = 1)
         {
+            batchSize = Math.Min(batchSize, trainSet.Count);
             Vector<double> output;
             double cost = 0;
             int nBatch = 0;

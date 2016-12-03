@@ -16,7 +16,7 @@ namespace NeuralNetModel
         public TrainingHook Hook;
 
         #region Properties
-        public ALayer this[int n]
+        public virtual ALayer this[int n]
         {
             get
             {
@@ -27,7 +27,7 @@ namespace NeuralNetModel
                 Layers[n] = value;
             }
         }
-        public int Count
+        public virtual int Count
         {
             get { return Layers.Count; }
         }
@@ -62,8 +62,8 @@ namespace NeuralNetModel
         protected List<ALayer> Layers;
         #endregion
 
-        #region Public
-        internal void Add(ALayer layer, int? pos = null)
+        #region Internal
+        internal virtual void Add(ALayer layer, int? pos = null)
         {
             if (pos == null)
                 Layers.Add(layer);

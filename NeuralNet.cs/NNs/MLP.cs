@@ -30,30 +30,31 @@ namespace NeuralNetModel
         /// <returns>The average cost function evaluation for each batch</returns>
         internal override void Learn(HashSet<TrainingData> trainingSet,int batchSize)
         {
+            batchSize = Math.Min(batchSize, trainingSet.Count);
             Vector<double> output;
             int count = 0;
             double cost = 0;
             int batchNumber = 0;
             foreach(TrainingData td in trainingSet)
             {
+
                 output = Process(td.Data);
 
                 cost += CostFunc.Of(td.Response, output) / batchSize;
                 PropogateError(CostFunc.Derivative(td.Response, output), batchSize);
 
                 count++;
+                if (Abort)
+                    return;
                 if (count > 0 && count % batchSize == 0)
                 {
                     batchNumber++;
                     LastCost = cost;
-                    Hook?.Invoke(batchNumber, this); // Trigger the batch level external control
                     ApplyError();
+                    if(!Abort) // Trying to make this kind of threadsafe
+                        Hook?.Invoke(batchNumber, this); // Trigger the batch level external control
                     count = 0;
                     cost = 0;
-                }
-                if (Abort)
-                {
-                    return;
                 }
             }
         }

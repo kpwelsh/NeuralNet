@@ -135,9 +135,10 @@ namespace NeuralNetModel
             return 10 * (ActFunc.Of(DirectInputCache) - 0.5);  // DEBUG 10*
         }
 
-        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null)
+        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null, Vector<double> additionalError = null)
         {
-            
+            if (additionalError != null)
+                throw new NNException("Additional error is not supported for Convolutional Layers");
             int nNodes = OutputHeight * OutputWidth;
             int nInputNodes = InputHeight * InputWidth;
             Vector<double> directInputError = 10*outputError.PointwiseMultiply(ActFunc.Derivative(DirectInputCache)); // DEBUG 10*

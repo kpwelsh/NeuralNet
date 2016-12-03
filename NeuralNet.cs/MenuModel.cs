@@ -20,8 +20,8 @@ namespace NeuralNetModel
 
         static Dictionary<string, HashSet<TrainingData>> CachedTrainingSets = new Dictionary<string, HashSet<TrainingData>>();
         static Dictionary<string, HashSet<TrainingData>> CachedTestSets = new Dictionary<string, HashSet<TrainingData>>();
-        static HashSet<TrainingData> SelectedTrain;
-        static HashSet<TrainingData> SelectedTest;
+        internal static HashSet<TrainingData> SelectedTrain;
+        internal static HashSet<TrainingData> SelectedTest;
 
         #region Instantiate Things
         // Nets

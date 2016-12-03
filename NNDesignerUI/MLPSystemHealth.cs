@@ -14,8 +14,10 @@ namespace NNDesignerUI
 {
     public partial class MLPSystemHealth : Form, SystemHealthMonitor
     {
-        public MLPSystemHealth()
+        private NetDesigner MainForm;
+        public MLPSystemHealth(NetDesigner main)
         {
+            MainForm = main;
             InitializeComponent();
             WeightChart.Legends.Add(new Legend("Legend"));
             Series cost = new Series("Cost");
@@ -48,8 +50,6 @@ namespace NNDesignerUI
             ca.AxisX.ScaleBreakStyle.BreakLineStyle = BreakLineStyle.None;
             WeightChart.ChartAreas[0] = ca;
         }
-
-        
 
         public void CostUpdate(int x, double c)
         {
@@ -137,6 +137,7 @@ namespace NNDesignerUI
 
         private void MLPSystemHealth_FormClosing(object sender, FormClosingEventArgs e)
         {
+            MainForm.Pause();
             DeAttach();
         }
 

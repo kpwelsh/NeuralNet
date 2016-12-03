@@ -69,7 +69,7 @@ namespace NeuralNetModel
             throw new NotImplementedException();
         }
 
-        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null)
+        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight, Vector<double> inputCacheOverride = null, Vector<double> additonalError = null)
         {
             throw new NotImplementedException();
         }

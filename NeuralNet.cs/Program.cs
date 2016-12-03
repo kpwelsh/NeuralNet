@@ -99,15 +99,69 @@ namespace NeuralNetModel
 
         static void Main(string[] args)
         {
-            
-            TrainFeedForward();
-            while (true) ;
-                
+            TrainAutoEncoder();
         }
 
         static void AddToCosts(int b, ANet net)
         {
             Costs.Add(net.LastCost);
+        }
+
+        static void TrainAutoEncoder()
+        {
+
+            MenuModel.LoadTrainingSet("newMnist_test", "newMnist_test.csv");
+            MenuModel.LoadTestSet("newMnist_test", "newMnist_test.csv");
+
+            AutoEncoder net = new AutoEncoder(activationGoal: 0.2 ,sparsityWeight: 30);
+            net.SetParameters(learningRate: 1, costFunc: CostFunction.MeanSquare);
+            net.Add(new Layer(784, 100, ActivationFunction.Sigmoid));
+
+            MenuModel.CurrentNet = net;
+
+            MenuModel.SelectTest("newMnist_test");
+            MenuModel.SelectTrain("newMnist_test");
+            MenuModel.TestSampleFreq = 10;
+            MenuModel.AddTestMonitor(PrintToScreen,10101010);
+            
+            Console.WriteLine("Done Loading");
+            MenuModel.TrainNet(10, 100);
+            using(StreamWriter fout = new StreamWriter("autoEncoded.txt"))
+            {
+                Matrix<double> w = (net[0] as Layer).Weights;
+
+                for (var i = 0; i < w.ColumnCount; i++)
+                {
+                    StringBuilder line = new StringBuilder();
+                    for(var j = 0; j < w.RowCount; j++)
+                    {
+                        line.Append(w[j, i] + " ");   
+                    }
+                    line.Remove(line.Length - 1,1);
+                    fout.WriteLine(line.ToString());
+                }
+            }
+            using (StreamWriter fout = new StreamWriter("replication.txt"))
+            {
+                TrainingData td = MenuModel.SelectedTest.First();
+                Vector<double> output = net.Process(td.Data);
+                
+                StringBuilder line = new StringBuilder();
+                for (var j = 0; j < output.Count; j++)
+                {
+                    line.Append(output[j] + " ");
+                }
+                line.Remove(line.Length - 1, 1);
+                fout.WriteLine(line.ToString());
+
+                line = new StringBuilder();
+                for (var j = 0; j < td.Data.Count; j++)
+                {
+                    line.Append(td.Data[j] + " ");
+                }
+                line.Remove(line.Length - 1, 1);
+                fout.WriteLine(line.ToString());
+            }
         }
 
         static void TrainRNN()
@@ -168,11 +222,10 @@ namespace NeuralNetModel
             }
         }
 
-        private static void PrintToScreen(params double[] vals)
+        private static void PrintToScreen(int x, params double[] vals)
         {
             Console.WriteLine("---------------------------------------");
-            Console.WriteLine(string.Format("Percent succes on test set: {0}", vals[0]));
-            Console.WriteLine("Epoch Complete");
+            Console.WriteLine(string.Format("Error on test set: {0}", vals[0]));
             Console.WriteLine("---------------------------------------");
         }
 

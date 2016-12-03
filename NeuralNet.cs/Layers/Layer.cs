@@ -19,7 +19,7 @@ namespace NeuralNetModel
         private Matrix<double> WeightErrorCache;
         private Vector<double> InputCache;
 
-        private double NormalizationWeight = 0.01;
+        private double NormalizationWeight = 0.1;
 
         private bool Configured = true;
 
@@ -68,7 +68,7 @@ namespace NeuralNetModel
             return ActFunc.Of(input * Weights);
         }
 
-        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight,Vector<double> inputCacheOverride = null)
+        internal override Vector<double> PropogateError(Vector<double> outputError, double errorWeight,Vector<double> inputCacheOverride = null, Vector<double> additionalError = null)
         {
             Vector<double> inputError;
 
@@ -76,6 +76,9 @@ namespace NeuralNetModel
                 inputError = outputError.PointwiseMultiply(ActFunc.Derivative(InputCache * Weights));
             else
                 inputError = outputError.PointwiseMultiply(ActFunc.Derivative(inputCacheOverride * Weights));
+
+            if (additionalError != null)
+                inputError -= additionalError;
 
             BiasErrorCache -= inputError * errorWeight;
             WeightErrorCache -= errorWeight * InputCache.OuterProduct(inputError);
@@ -100,6 +103,15 @@ namespace NeuralNetModel
         internal override double WeightMagnitude()
         {
             return Weights.L1Norm() / (OutputDimension * InputDimension);
+        }
+
+        internal void SetWeights(Matrix<double> weights)
+        {
+            if (weights.ColumnCount != OutputDimension 
+                || weights.RowCount != InputDimension)
+                throw new NNException("Invalid weight output dimension.");
+            
+            Weights = weights;
         }
     }
 }

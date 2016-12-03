@@ -47,20 +47,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ALayer.cs" />
-    <Compile Include="ANet.cs" />
-    <Compile Include="ConvLayer.cs" />
+    <Compile Include="Layers\ALayer.cs" />
+    <Compile Include="NNs\ANet.cs" />
+    <Compile Include="NNs\AutoEncoder.cs" />
+    <Compile Include="Layers\ConvLayer.cs" />
     <Compile Include="CrossEntropy.cs" />
-    <Compile Include="FullyConnectedRNN.cs" />
+    <Compile Include="NNs\FullyConnectedRNN.cs" />
     <Compile Include="IActivationFunction.cs" />
     <Compile Include="ICostFunction.cs" />
-    <Compile Include="IMenu.cs" />
-    <Compile Include="Layer.cs" />
+    <Compile Include="Layers\Layer.cs" />
     <Compile Include="MenuModel.cs" />
     <Compile Include="MeanSquare.cs" />
-    <Compile Include="MLP.cs" />
+    <Compile Include="NNs\MLP.cs" />
     <Compile Include="NNException.cs" />
-    <Compile Include="PoolingLayer.cs" />
+    <Compile Include="Layers\PoolingLayer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sigmoid.cs" />

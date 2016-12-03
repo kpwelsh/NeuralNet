@@ -90,7 +90,7 @@ namespace NNDesignerUI
         {
             if(monitor == null || monitor.IsDisposed())
             {
-                MLPSystemHealth m = new MLPSystemHealth();
+                MLPSystemHealth m = new MLPSystemHealth(this);
                 m.Show();
                 monitor = m;
             }
@@ -306,12 +306,17 @@ namespace NNDesignerUI
             Back(false);
         }
 
-        private void Pause(object sender, EventArgs e)
+        public void Pause()
         {
             if (!BStartLearn.Enabled)
             {
                 MenuModel.CurrentNet.Abort = true;
             }
+        }
+
+        private void Pause(object sender, EventArgs e)
+        {
+            Pause();
         }
 
         private void TweakNet(object sender, EventArgs e)
@@ -376,5 +381,16 @@ namespace NNDesignerUI
         }
         #endregion
 
+        private void NLayerInputDim_Enter(object sender, EventArgs e)
+        {
+            NLayerInputDim.Select();
+            NLayerInputDim.Select(0, NLayerInputDim.Text.Length);
+        }
+
+        private void NLayerOutputDim_Enter(object sender, EventArgs e)
+        {
+            NLayerOutputDim.Select();
+            NLayerOutputDim.Select(0, NLayerOutputDim.Text.Length);
+        }
     }
 }

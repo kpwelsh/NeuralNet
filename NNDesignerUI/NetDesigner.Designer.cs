@@ -60,6 +60,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.PTrainNet = new System.Windows.Forms.TabPage();
+            this.BTweakNet = new System.Windows.Forms.Button();
             this.BPause = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -73,7 +74,6 @@
             this.LBLoadedTrain = new System.Windows.Forms.ListBox();
             this.LMiniBatch = new System.Windows.Forms.Label();
             this.LEpochs = new System.Windows.Forms.Label();
-            this.BTweakNet = new System.Windows.Forms.Button();
             this.hiddenTabControl1.SuspendLayout();
             this.PMainMenu.SuspendLayout();
             this.PPickANet.SuspendLayout();
@@ -90,7 +90,7 @@
             this.PPreview.ColumnCount = 3;
             this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
             this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
-            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 168F));
+            this.PPreview.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 170F));
             this.PPreview.Location = new System.Drawing.Point(4, 420);
             this.PPreview.Name = "PPreview";
             this.PPreview.RowCount = 3;
@@ -360,6 +360,7 @@
             0,
             0});
             this.NLayerInputDim.ValueChanged += new System.EventHandler(this.NLayerInputDim_ValueChanged);
+            this.NLayerInputDim.Enter += new System.EventHandler(this.NLayerInputDim_Enter);
             // 
             // NLayerOutputDim
             // 
@@ -383,6 +384,7 @@
             0,
             0});
             this.NLayerOutputDim.ValueChanged += new System.EventHandler(this.NLayerOutputDim_ValueChanged);
+            this.NLayerOutputDim.Enter += new System.EventHandler(this.NLayerOutputDim_Enter);
             // 
             // DActivationFunction
             // 
@@ -458,6 +460,16 @@
             this.PTrainNet.TabIndex = 4;
             this.PTrainNet.Text = "TrainNet";
             this.PTrainNet.UseVisualStyleBackColor = true;
+            // 
+            // BTweakNet
+            // 
+            this.BTweakNet.Location = new System.Drawing.Point(28, 286);
+            this.BTweakNet.Name = "BTweakNet";
+            this.BTweakNet.Size = new System.Drawing.Size(75, 23);
+            this.BTweakNet.TabIndex = 13;
+            this.BTweakNet.Text = "Tweak Net";
+            this.BTweakNet.UseVisualStyleBackColor = true;
+            this.BTweakNet.Click += new System.EventHandler(this.TweakNet);
             // 
             // BPause
             // 
@@ -586,16 +598,6 @@
             this.LEpochs.Size = new System.Drawing.Size(95, 13);
             this.LEpochs.TabIndex = 0;
             this.LEpochs.Text = "Number of Epochs";
-            // 
-            // BTweakNet
-            // 
-            this.BTweakNet.Location = new System.Drawing.Point(28, 286);
-            this.BTweakNet.Name = "BTweakNet";
-            this.BTweakNet.Size = new System.Drawing.Size(75, 23);
-            this.BTweakNet.TabIndex = 13;
-            this.BTweakNet.Text = "Tweak Net";
-            this.BTweakNet.UseVisualStyleBackColor = true;
-            this.BTweakNet.Click += new System.EventHandler(this.TweakNet);
             // 
             // NetDesigner
             // 
